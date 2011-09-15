@@ -1,0 +1,86 @@
+NAME
+    Lingua::RU::OpenCorpora::Tokenizer - tokenizer for OpenCorpora project
+
+SYNOPSIS
+        my $tokens = $tokenizer->tokens($text);
+
+        my $bounds = $tokenizer->tokens_bounds($text);
+
+DESCRIPTION
+    This module tokenizes input texts in Russian language.
+
+    It uses probabilistic algorithm rather than trying to parse the
+    language. It also uses some pre-calculated data freely provided by
+    OpenCorpora project.
+
+    NOTE: OpenCorpora periodically provides updates for this data. Checkout
+    "opencorpora-update-tokenizer" script that comes with this distribution.
+
+    NOTE: this is still an alpha version software, API and/or behaviour may
+    be changed.
+
+    The algorithm is this:
+
+    1. Split text into chars.
+    2. Iterate over the chars from left to right.
+    3. For every char get its context (see CONTEXT).
+    4. Find probability for the context in vectors file (see "VECTORS FILE")
+    or use the default value - 0.5.
+
+  CONTEXT
+    In terms of this module context is just a binary vector, currently
+    consisting of 27 elements. It's calculated for every character of the
+    text, then it gets converted to decimal representation and then it's
+    checked against "VECTORS FILE". Every element is a result of a simple
+    function like "_is_latin", "_is_digit", "_is_bracket" and etc. applied
+    to the input character and few characters around it.
+
+  VECTORS FILE
+    Contains a list of vectors with probability values showing the chance
+    that given vector is a token boundary.
+
+    Built by OpenCorpora project from semi-automatically annotated corpus.
+
+  HYPHENS FILE
+    Contains a list of hyphenated Russian words. Used in vectors
+    calculations.
+
+    Built by OpenCorpora project from semi-automatically annotated corpus.
+
+METHODS
+  new
+    Constructs and initializes new tokenizer object.
+
+  tokens($text [, %options])
+    Takes text as input and splits it into tokens. Returns a reference to an
+    array of tokens.
+
+    Optionally you can also pass a hash with options:
+
+    threshold
+        Probability threshold. Boundaries with lower probability will be
+        excluded from consideration.
+
+        Default value is 1.
+
+  tokens_bounds($text)
+    Takes text as input and finds bounds of tokens in the text. It doesn't
+    split the text into tokens, it just marks where tokens could be.
+
+    Returns an arrayref of arrayrefs. Inner arrayref consists of two
+    elements: boundary position in text and probability. Boundary position
+    is the number of the character that separates two tokens, it's what
+    you'd use in "substr()" call.
+
+SEE ALSO
+    Lingua::RU::OpenCorpora::Tokenizer::Updater
+
+    <http://mathlingvo.ru/nlpseminar/archive/s_49>
+
+AUTHOR
+    OpenCorpora.org team <http://opencorpora.org>
+
+LICENSE
+    This program is free software, you can redistribute it under the same
+    terms as Perl itself.
+

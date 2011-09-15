@@ -1,0 +1,86 @@
+#!/usr/bin/env perl
+
+use v5.10;
+use strict;
+use warnings;
+
+use Pod::Usage;
+use Getopt::Long;
+use Lingua::RU::OpenCorpora::Tokenizer::Updater;
+
+GetOptions(
+    \my %opts,
+    'help',
+    'hyphens',
+    'vectors',
+    'force',
+    'quiet',
+);
+usage(2) if $opts{help};
+usage() if not $opts{vectors} and not $opts{hyphens};
+
+my $updater = Lingua::RU::OpenCorpora::Tokenizer::Updater->new;
+
+if($opts{vectors} or $opts{force}) {
+    if($updater->vectors_update_available) {
+        say "Vectors: $updater->{vectors_current} -> $updater->{vectors_latest}" unless $opts{quiet};
+        $updater->update_vectors;
+    }
+    else {
+        say "No update available for vectors" unless $opts{quiet};
+    }
+}
+
+if($opts{hyphens} or $opts{force}) {
+    if($updater->hyphens_update_available) {
+        say "Hyphens: $updater->{hyphens_current} -> $updater->{hyphens_latest}" unless $opts{quiet};
+        $updater->update_hyphens;
+    }
+    else {
+        say "No update available for hyphens" unless $opts{quiet};
+    }
+}
+
+sub usage { pod2usage(-verbose => $_[0]) }
+
+__END__
+
+=head1 NAME
+
+opencorpora-update-tokenizer - download newer data for tokenizer
+
+=head1 DESCRIPTION
+
+OpenCorpora tokenizer uses pre-calculated data stored in local files. This tool is used to update those files. Files are downloaded from OpenCorpora servers.
+
+=head1 SYNOPSIS
+
+opencorpora-update-tokenizer [options]
+
+Options:
+
+=over 4
+
+=item --vectors
+
+Update vectors file
+
+=item --hyphens
+
+Update hyphens file
+
+=item --force
+
+Force update even if you already have up-to-date data
+
+=item --quiet
+
+Suppress any informational messages
+
+=item --help
+
+Show this message
+
+=back
+
+Note that you must specify either --vectors or --hyphens option.
