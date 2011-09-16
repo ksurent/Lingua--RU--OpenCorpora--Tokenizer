@@ -59,7 +59,7 @@ sub _do_tokenize {
         not defined $context->{$_} and $context->{$_} = ''
             for qw(nextchar nnextchar);
 
-        $self->_get_char_chains($context);
+        $self->_get_char_sequences($context);
         $self->_vector($context);
 
         my $coeff = $self->{vectors}{$context->{vector}};
@@ -82,44 +82,44 @@ sub _do_tokenize {
     }
 }
 
-sub _get_char_chains {
+sub _get_char_sequences {
     my($self, $context) = @_;
 
-    my $chain = my $chain_left = my $chain_right = '';
+    my $sequence = my $sequence_left = my $sequence_right = '';
 
     if($self->_is_hyphen($context->{nextchar}) or $self->_is_hyphen($context->{char})) {
         # go left
         for(my $i = $context->{idx}; $i >= 0; $i--) {
             my $ch = $self->{chars}[$i];
             if($self->_is_cyr($ch) or $self->_is_hyphen($ch) or $self->_is_single_quote($ch)) {
-                $chain_left = $ch . $chain_left;
+                $sequence_left = $ch . $sequence_left;
             }
             else {
                 last;
             }
 
-            $chain_left =~ s/-$//;
+            $sequence_left =~ s/-$//;
         }
 
         # go right
         for(my $i = $context->{idx} + 1; $i <= $#{ $self->{chars} }; $i++) {
             my $ch = $self->{chars}[$i];
             if($self->_is_cyr($ch) or $self->_is_hyphen($ch) or $self->_is_single_quote($ch)) {
-                $chain_right .= $ch;
+                $sequence_right .= $ch;
             }
             else {
                 last;
             }
 
-            $chain_right =~ s/^-//;
+            $sequence_right =~ s/^-//;
         }
 
-        $chain = $chain_left . '-' . $chain_right;
+        $sequence = $sequence_left . '-' . $sequence_right;
     }
 
-    $context->{chain}       = $chain;
-    $context->{chain_left}  = $chain_left;
-    $context->{chain_right} = $chain_right;
+    $context->{sequence}       = $sequence;
+    $context->{sequence_left}  = $sequence_left;
+    $context->{sequence_right} = $sequence_right;
 
     return;
 }
@@ -154,7 +154,7 @@ sub _init {
         [\&_is_digit,        'char',            ],
         [\&_is_digit,        'nextchar',        ],
         [\&_is_digit,        'nnextchar',       ],
-        [\&_is_dict_chain,   'chain',           ],
+        [\&_is_dict_sequence,   'sequence',           ],
         [\&_is_dot,          'char',            ],
         [\&_is_dot,          'nextchar',        ],
         [\&_is_bracket1,     'char',            ],
@@ -163,7 +163,7 @@ sub _init {
         [\&_is_bracket2,     'nextchar',        ],
         [\&_is_single_quote, 'char',            ],
         [\&_is_single_quote, 'nextchar',        ],
-        [\&_is_suffix,       'chain_right',     ],
+        [\&_is_suffix,       'sequence_right',     ],
         [\&_is_same_pm,      'char', 'nextchar',],
         [\&_is_slash,        'char',            ],
         [\&_is_slash,        'nextchar',        ],
@@ -229,12 +229,12 @@ sub _is_slash        { $_[1] eq '/' ? 1 : 0 }
 
 sub _is_same_pm      { $_[1] eq $_[2] ? 1 : 0 }
 
-sub _is_dict_chain {
-    my($self, $chain) = @_;
+sub _is_dict_sequence {
+    my($self, $sequence) = @_;
 
-    return 0 if not $chain or $chain =~ /^-/;
+    return 0 if not $sequence or $sequence =~ /^-/;
 
-    exists $self->{hyphens}{$chain} ? 1 : 0;
+    exists $self->{hyphens}{$sequence} ? 1 : 0;
 }
 
 1;
