@@ -1,6 +1,6 @@
 use inc::Module::Install;
 
-all_from    'lib/Lingua/RU/OpenCorpora/Tokenizer.pm';
+all_from 'lib/Lingua/RU/OpenCorpora/Tokenizer.pm';
 readme_from 'lib/Lingua/RU/OpenCorpora/Tokenizer.pm';
 
 requires 'LWP::UserAgent';

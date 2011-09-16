@@ -1,13 +1,14 @@
 package Lingua::RU::OpenCorpora::Tokenizer;
 
 use utf8;
+use v5.10;
 use strict;
 use warnings;
 
 use Carp qw(croak);
 use Lingua::RU::OpenCorpora::Tokenizer::Updater;
 
-our $VERSION = 0.03;
+our $VERSION = 0.02;
 
 sub new {
     my $class = shift;
@@ -19,12 +20,9 @@ sub new {
 }
 
 sub tokens {
-    my($self, $text, %options) = @_;
+    my($self, $text) = @_;
 
-    $options{want_tokens} = 1;
-    $options{threshold}   = 1 unless defined $options{threshold};
-
-    $self->_do_tokenize($text, %options);
+    $self->_do_tokenize($text);
 
     $self->{tokens};
 }
@@ -32,16 +30,13 @@ sub tokens {
 sub tokens_bounds {
     my($self, $text) = @_;
 
-    $self->_do_tokenize(
-        $text,
-        want_tokens => 0,
-    );
+    $self->_do_tokenize($text);
 
     $self->{bounds};
 }
 
 sub _do_tokenize {
-    my($self, $text, %options) = @_;
+    my($self, $text) = @_;
 
     my $chars = $self->{chars} = [split //, $text];
     $self->{bounds} = [];
@@ -52,74 +47,65 @@ sub _do_tokenize {
         my $context = {
             char      => $chars->[$i],
             prevchar  => $i ? $chars->[$i - 1] : '',
-            nextchar  => $chars->[$i + 1],
-            nnextchar => $chars->[$i + 2],
-            idx       => $i,
+            nextchar  => $chars->[$i + 1] // '',
+            nnextchar => $chars->[$i + 2] // '',
+            pos       => $i,
         };
-        not defined $context->{$_} and $context->{$_} = ''
-            for qw(nextchar nnextchar);
 
-        $self->_get_char_sequences($context);
+        $self->_get_char_chains($context);
         $self->_vector($context);
 
-        my $coeff = $self->{vectors}{$context->{vector}};
-        $coeff = 0.5 unless defined $coeff;
+        $token .= $chars->[$i];
 
-        if($options{want_tokens}) {
-            $token .= $chars->[$i];
+        my $coeff = $self->{vectors}{$context->{vector}} // 0.5;
+        if($coeff) {
+            push @{ $self->{bounds} }, [$context->{pos} + 2, $coeff];
+
             $token =~ s{^\s+|\s+$}{};
-
-            if($coeff >= $options{threshold}) {
-                push @{ $self->{tokens} }, $token if $token;
-                $token = '';
-            }
-        }
-        else {
-            if($coeff) {
-                push @{ $self->{bounds} }, [$context->{idx} + 2, $coeff]; # next char, not index
-            }
+            push @{ $self->{tokens} }, $token if $token;
+            $token = '';
         }
     }
 }
 
-sub _get_char_sequences {
+sub _get_char_chains {
     my($self, $context) = @_;
 
-    my $sequence = my $sequence_left = my $sequence_right = '';
+    my $chain = my $chain_left = my $chain_right = '';
 
     if($self->_is_hyphen($context->{nextchar}) or $self->_is_hyphen($context->{char})) {
         # go left
-        for(my $i = $context->{idx}; $i >= 0; $i--) {
+        for(my $i = $context->{pos}; $i >= 0; $i--) {
             my $ch = $self->{chars}[$i];
             if($self->_is_cyr($ch) or $self->_is_hyphen($ch) or $self->_is_single_quote($ch)) {
-                $sequence_left = $ch . $sequence_left;
+                $chain_left = $ch . $chain_left;
             }
             else {
                 last;
             }
 
-            $sequence_left =~ s/-$//;
+            $chain_left =~ s/-$//;
         }
 
         # go right
-        for(my $i = $context->{idx} + 1; $i <= $#{ $self->{chars} }; $i++) {
+        for(my $i = $context->{pos} + 1; $i <= $#{ $self->{chars} }; $i++) {
             my $ch = $self->{chars}[$i];
             if($self->_is_cyr($ch) or $self->_is_hyphen($ch) or $self->_is_single_quote($ch)) {
-                $sequence_right .= $ch;
+                $chain_right .= $ch;
             }
             else {
                 last;
             }
 
-            $sequence_right =~ s/^-//;
+            $chain_right =~ s/^-//;
         }
 
-        $sequence = $sequence_left . '-' . $sequence_right;
+        $chain = $chain_left . '-' . $chain_right;
     }
 
-    $context->{sequence}       = $sequence;
-    $context->{sequence_left}  = $sequence_left;
-    $context->{sequence_right} = $sequence_right;
+    $context->{chain}       = $chain;
+    $context->{chain_left}  = $chain_left;
+    $context->{chain_right} = $chain_right;
 
     return;
 }
@@ -154,7 +140,7 @@ sub _init {
         [\&_is_digit,        'char',            ],
         [\&_is_digit,        'nextchar',        ],
         [\&_is_digit,        'nnextchar',       ],
-        [\&_is_dict_sequence,   'sequence',           ],
+        [\&_is_dict_chain,   'chain',           ],
         [\&_is_dot,          'char',            ],
         [\&_is_dot,          'nextchar',        ],
         [\&_is_bracket1,     'char',            ],
@@ -163,7 +149,7 @@ sub _init {
         [\&_is_bracket2,     'nextchar',        ],
         [\&_is_single_quote, 'char',            ],
         [\&_is_single_quote, 'nextchar',        ],
-        [\&_is_suffix,       'sequence_right',     ],
+        [\&_is_suffix,       'chain_right',     ],
         [\&_is_same_pm,      'char', 'nextchar',],
         [\&_is_slash,        'char',            ],
         [\&_is_slash,        'nextchar',        ],
@@ -229,12 +215,12 @@ sub _is_slash        { $_[1] eq '/' ? 1 : 0 }
 
 sub _is_same_pm      { $_[1] eq $_[2] ? 1 : 0 }
 
-sub _is_dict_sequence {
-    my($self, $sequence) = @_;
+sub _is_dict_chain {
+    my($self, $chain) = @_;
 
-    return 0 if not $sequence or $sequence =~ /^-/;
+    return 0 if not $chain or $chain =~ /^-/;
 
-    exists $self->{hyphens}{$sequence} ? 1 : 0;
+    exists $self->{hyphens}{$chain} ? 1 : 0;
 }
 
 1;
@@ -255,11 +241,9 @@ Lingua::RU::OpenCorpora::Tokenizer - tokenizer for OpenCorpora project
 
 This module tokenizes input texts in Russian language.
 
-It uses probabilistic algorithm rather than trying to parse the language. It also uses some pre-calculated data freely provided by OpenCorpora project.
+Note that it uses probabilistic algorithm rather than trying to parse the language. It also uses some pre-calculated data freely provided by OpenCorpora project.
 
 NOTE: OpenCorpora periodically provides updates for this data. Checkout C<opencorpora-update-tokenizer> script that comes with this distribution.
-
-NOTE: this is still an alpha version software, API and/or behaviour may be changed.
 
 The algorithm is this:
 
@@ -297,27 +281,15 @@ Built by OpenCorpora project from semi-automatically annotated corpus.
 
 Constructs and initializes new tokenizer object.
 
-=head2 tokens($text [, %options])
+=head2 tokens($text)
 
 Takes text as input and splits it into tokens. Returns a reference to an array of tokens.
-
-Optionally you can also pass a hash with options:
-
-=over 4
-
-=item threshold
-
-Probability threshold. Boundaries with lower probability will be excluded from consideration.
-
-Default value is 1.
-
-=back
 
 =head2 tokens_bounds($text)
 
 Takes text as input and finds bounds of tokens in the text. It doesn't split the text into tokens, it just marks where tokens could be.
 
-Returns an arrayref of arrayrefs. Inner arrayref consists of two elements: boundary position in text and probability. Boundary position is the number of the character that separates two tokens, it's what you'd use in C<substr()> call.
+Returns an arrayref of arrayrefs. Inner arrayref consists of two elements: boundary position in text and probability.
 
 =head1 SEE ALSO
 

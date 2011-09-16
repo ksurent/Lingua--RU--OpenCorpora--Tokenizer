@@ -9,15 +9,12 @@ SYNOPSIS
 DESCRIPTION
     This module tokenizes input texts in Russian language.
 
-    It uses probabilistic algorithm rather than trying to parse the
-    language. It also uses some pre-calculated data freely provided by
+    Note that it uses probabilistic algorithm rather than trying to parse
+    the language. It also uses some pre-calculated data freely provided by
     OpenCorpora project.
 
     NOTE: OpenCorpora periodically provides updates for this data. Checkout
     "opencorpora-update-tokenizer" script that comes with this distribution.
-
-    NOTE: this is still an alpha version software, API and/or behaviour may
-    be changed.
 
     The algorithm is this:
 
@@ -51,26 +48,16 @@ METHODS
   new
     Constructs and initializes new tokenizer object.
 
-  tokens($text [, %options])
+  tokens($text)
     Takes text as input and splits it into tokens. Returns a reference to an
     array of tokens.
-
-    Optionally you can also pass a hash with options:
-
-    threshold
-        Probability threshold. Boundaries with lower probability will be
-        excluded from consideration.
-
-        Default value is 1.
 
   tokens_bounds($text)
     Takes text as input and finds bounds of tokens in the text. It doesn't
     split the text into tokens, it just marks where tokens could be.
 
     Returns an arrayref of arrayrefs. Inner arrayref consists of two
-    elements: boundary position in text and probability. Boundary position
-    is the number of the character that separates two tokens, it's what
-    you'd use in "substr()" call.
+    elements: boundary position in text and probability.
 
 SEE ALSO
     Lingua::RU::OpenCorpora::Tokenizer::Updater
