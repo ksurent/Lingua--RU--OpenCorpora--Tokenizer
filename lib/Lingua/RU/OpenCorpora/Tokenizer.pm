@@ -72,37 +72,77 @@ sub _get_char_chains {
     my($self, $context) = @_;
 
     my $chain = my $chain_left = my $chain_right = '';
+    my $spacer = '';
 
-    if($self->_is_hyphen($context->{nextchar}) or $self->_is_hyphen($context->{char})) {
+    if(
+        $context->{nextchar} =~ m|([-./?=:&"!+()])|
+        or $context->{char} =~ m|([-./?=:&"!+()])|
+    )
+    {
+        $spacer = $1;
+    }
+
+    if(length $spacer) {
         # go left
         for(my $i = $context->{pos}; $i >= 0; $i--) {
             my $ch = $self->{chars}[$i];
-            if($self->_is_cyr($ch) or $self->_is_hyphen($ch) or $self->_is_single_quote($ch)) {
+
+            my $case1 = !!(
+                $self->_is_hyphen($spacer)
+                and (
+                    $self->_is_cyr($ch)
+                    or $self->_is_hyphen($ch)
+                    or $self->_is_single_quote($ch)
+                )
+            );
+            my $case2 = !!(
+                not $self->_is_hyphen($spacer)
+                and not $self->_is_space($ch)
+            );
+
+            if($case1 or $case2) {
                 $chain_left = $ch . $chain_left;
             }
             else {
                 last;
             }
 
-            $chain_left =~ s/-$//;
+            $chain_left = substr $chain_left, 0, -1
+                if substr($chain_left, -1) eq $spacer;
         }
 
         # go right
         for(my $i = $context->{pos} + 1; $i <= $#{ $self->{chars} }; $i++) {
             my $ch = $self->{chars}[$i];
-            if($self->_is_cyr($ch) or $self->_is_hyphen($ch) or $self->_is_single_quote($ch)) {
+
+            my $case1 = !!(
+                $self->_is_hyphen($spacer)
+                and (
+                    $self->_is_cyr($ch)
+                    or $self->_is_hyphen($ch)
+                    or $self->_is_single_quote($ch)
+                )
+            );
+            my $case2 = !!(
+                not $self->_is_hyphen($spacer)
+                and not $self->_is_space($ch)
+            );
+
+            if($case1 or $case2) {
                 $chain_right .= $ch;
             }
             else {
                 last;
             }
 
-            $chain_right =~ s/^-//;
+            $chain_right = substr $chain_right, 0, 1
+                if substr($chain_right, -1) eq $spacer;
         }
 
-        $chain = $chain_left . '-' . $chain_right;
+        $chain = join '', $chain_left, $spacer, $chain_right;
     }
 
+    $context->{spacer}      = $spacer;
     $context->{chain}       = $chain;
     $context->{chain_left}  = $chain_left;
     $context->{chain_right} = $chain_right;
@@ -113,11 +153,37 @@ sub _get_char_chains {
 sub _vector {
     my($self, $context) = @_;
 
-    my $vec = join '',
-              map $_->[0]($self, @$context{@$_[1 .. $#$_]}),
-              @{ $self->{vector_functions} };
+    my $spacer           = !!length $context->{spacer};
+    my $spacer_is_hyphen = $spacer and $self->_is_hyphen($context->{spacer});
 
-    $context->{vector} = oct '0b' . $vec;
+    my @bits = (
+        $self->_char_class($context->{char}),
+        $self->_char_class($context->{nextchar}),
+        $self->_is_digit($context->{prevchar}),
+        $self->_is_digit($context->{nnextchar}),
+        $spacer_is_hyphen
+            ? $self->_is_dict_chain($context->{chain})
+            : 0,
+        $spacer_is_hyphen
+            ? $self->_is_suffix($context->{chain_right})
+            : 0,
+        $self->_is_same_pm($context->{char}, $context->{nextchar}),
+        ($spacer and not $spacer_is_hyphen)
+            ? $self->_looks_like_url($context->{chain}, $context->{chain_right})
+            : 0,
+        ($spacer and not $spacer_is_hyphen)
+            ? $self->_is_exception_chain($context->{chain})
+            : 0,
+        $spacer_is_hyphen
+            ? $self->_is_prefix($context->{chain_left})
+            : 0,
+        ($self->_is_colon($context->{spacer}) and length $context->{chain_right})
+            ? $self->_looks_like_time($context->{chain_left}, $context->{chain_right})
+            : 0,
+    );
+
+    local $" = '';
+    $context->{vector} = oct "0b@bits";
 
     return;
 }
@@ -125,38 +191,10 @@ sub _vector {
 sub _init {
     my $self = shift;
 
-    $self->{vector_functions} = [
-        [\&_is_space,        'char',            ],
-        [\&_is_space,        'nextchar',        ],
-        [\&_is_pmark,        'char',            ],
-        [\&_is_pmark,        'nextchar',        ],
-        [\&_is_latin,        'char',            ],
-        [\&_is_latin,        'nextchar',        ],
-        [\&_is_cyr,          'char',            ],
-        [\&_is_cyr,          'nextchar',        ],
-        [\&_is_hyphen,       'char',            ],
-        [\&_is_hyphen,       'nextchar',        ],
-        [\&_is_digit,        'prevchar',        ],
-        [\&_is_digit,        'char',            ],
-        [\&_is_digit,        'nextchar',        ],
-        [\&_is_digit,        'nnextchar',       ],
-        [\&_is_dict_chain,   'chain',           ],
-        [\&_is_dot,          'char',            ],
-        [\&_is_dot,          'nextchar',        ],
-        [\&_is_bracket1,     'char',            ],
-        [\&_is_bracket1,     'nextchar',        ],
-        [\&_is_bracket2,     'char',            ],
-        [\&_is_bracket2,     'nextchar',        ],
-        [\&_is_single_quote, 'char',            ],
-        [\&_is_single_quote, 'nextchar',        ],
-        [\&_is_suffix,       'chain_right',     ],
-        [\&_is_same_pm,      'char', 'nextchar',],
-        [\&_is_slash,        'char',            ],
-        [\&_is_slash,        'nextchar',        ],
-    ];
-
     $self->_load_vectors;
     $self->_load_hyphens;
+    $self->_load_prefixes;
+    $self->_load_exceptions;
 
     return;
 }
@@ -189,7 +227,35 @@ sub _load_hyphens {
     return;
 }
 
-sub _is_pmark        { $_[1] =~ /^[,?!":;\xAB\xBB]$/ ? 1 : 0 }
+sub _load_prefixes {
+    my $self = shift;
+
+    my $file = Lingua::RU::OpenCorpora::Tokenizer::Updater->_path('prefixes');
+    open my $fh, '<:utf8', $file or croak "$file: $!";
+    <$fh>; # skip version
+    my %prefixes = map { chomp; $_, undef } <$fh>;
+    close $fh;
+
+    $self->{prefixes} = \%prefixes;
+
+    return;
+}
+
+sub _load_exceptions {
+    my $self = shift;
+
+    my $file = Lingua::RU::OpenCorpora::Tokenizer::Updater->_path('exceptions');
+    open my $fh, '<:utf8', $file or croak "$file: $!";
+    <$fh>; # skip version
+    my %exceptions = map { chomp; $_, undef } <$fh>;
+    close $fh;
+
+    $self->{exceptions} = \%exceptions;
+
+    return;
+}
+
+sub _is_pmark        { $_[1] =~ /^[,?!";«»]$/ ? 1 : 0 }
 
 sub _is_latin        { $_[1] =~ /^[a-zA-Z]$/ ? 1 : 0 }
 
@@ -213,7 +279,15 @@ sub _is_single_quote { $_[1] eq "'" ? 1 : 0 }
 
 sub _is_slash        { $_[1] eq '/' ? 1 : 0 }
 
+sub _is_colon        { $_[1] eq ':' ? 1 : 0 }
+
 sub _is_same_pm      { $_[1] eq $_[2] ? 1 : 0 }
+
+sub _is_prefix {
+    my($self, $chain) = @_;
+
+    exists $self->{prefixes}{lc $chain} ? 1 : 0;
+}
 
 sub _is_dict_chain {
     my($self, $chain) = @_;
@@ -221,6 +295,64 @@ sub _is_dict_chain {
     return 0 if not $chain or $chain =~ /^-/;
 
     exists $self->{hyphens}{$chain} ? 1 : 0;
+}
+
+sub _is_exception_chain {
+    my($self, $chain) = @_;
+
+    return 1 if $self->{exceptions}{$chain};
+
+    return 0 unless $chain =~ /^\W|\W$/;
+
+    $chain =~ s/^[^A-Za-zА-ЯЁа-яё0-9]+//;
+    return 1 if exists $self->{exceptions}{$chain};
+
+    while($chain =~ s/^[^A-Za-zА-ЯЁа-яё0-9]+//) {
+        return 1 if exists $self->{exceptions}{$chain};
+    }
+
+    0;
+}
+
+sub _looks_like_url {
+    my($self, $chain, $chain_right) = @_;
+
+    return 0 unless $chain_right;
+    return 0 if $chain =~ /^\./;
+
+    ($chain =~ m{^\W*https://} or $chain =~ m{.\.(?:ru|ua|com|org|gov|us|ру|рф)\W*$}i)
+        ? 1
+        : 0;
+}
+
+sub _looks_like_time {
+    my($self, $chain_left, $chain_right) = @_;
+
+    return 0 if $chain_left  !~ /^[0-9]{1,2}$/
+             or $chain_right !~ /^[0-9]{2}$/;
+
+    ($chain_left < 24 and $chain_right < 60)
+        ? 1
+        : 0;
+}
+
+sub _char_class {
+    my($self, $char) = @_;
+
+    my $bits = $self->_is_cyr($char)          ? '0001' :
+               $self->_is_space($char)        ? '0010' :
+               $self->_is_dot($char)          ? '0011' :
+               $self->_is_pmark($char)        ? '0100' :
+               $self->_is_hyphen($char)       ? '0101' :
+               $self->_is_digit($char)        ? '0110' :
+               $self->_is_latin($char)        ? '0111' :
+               $self->_is_bracket1($char)     ? '1000' :
+               $self->_is_bracket2($char)     ? '1001' :
+               $self->_is_single_quote($char) ? '1010' :
+               $self->_is_slash($char)        ? '1011' :
+               $self->_is_colon($char)        ? '1100' : '0000';
+
+    split //, $bits;
 }
 
 1;
