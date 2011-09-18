@@ -15,20 +15,30 @@ sub new {
     my $class = shift;
 
     my $self = bless {
-        vectors_latest => 'http://wiki.iphil.ru/corpus/files/tokenizer/vectors.latest',
-        vectors_url    => 'http://wiki.iphil.ru/corpus/files/tokenizer/vectors.gz',
-        hyphens_latest => 'http://wiki.iphil.ru/corpus/files/tokenizer/hyphens.latest',
-        hyphens_url    => 'http://wiki.iphil.ru/corpus/files/tokenizer/hyphens.gz',
+        vectors_latest    => 'http://wiki.iphil.ru/corpus/files/tokenizer/vectors.latest',
+        vectors_url       => 'http://wiki.iphil.ru/corpus/files/tokenizer/vectors.gz',
+        hyphens_latest    => 'http://wiki.iphil.ru/corpus/files/tokenizer/hyphens.latest',
+        hyphens_url       => 'http://wiki.iphil.ru/corpus/files/tokenizer/hyphens.gz',
+        exceptions_latest => 'http://wiki.iphil.ru/corpus/files/tokenizer/exceptions.latest',
+        exceptions_url    => 'http://wiki.iphil.ru/corpus/files/tokenizer/exceptions.gz',
+        prefixes_latest   => 'http://wiki.iphil.ru/corpus/files/tokenizer/prefixes.latest',
+        prefixes_url      => 'http://wiki.iphil.ru/corpus/files/tokenizer/prefixes.gz',
+
     }, $class;
     $self->_init;
 
     $self;
 }
 
-sub vectors_update_available { $_[0]->_update_available('vectors') }
-sub hyphens_update_available { $_[0]->_update_available('hyphens') }
-sub update_vectors { $_[0]->_update('vectors') }
-sub update_hyphens { $_[0]->_update('hyphens') }
+sub vectors_update_available    { $_[0]->_update_available('vectors')    }
+sub hyphens_update_available    { $_[0]->_update_available('hyphens')    }
+sub exceptions_update_available { $_[0]->_update_available('exceptions') }
+sub prefixes_update_available   { $_[0]->_update_available('prefixes')   }
+
+sub update_vectors    { $_[0]->_update('vectors')    }
+sub update_hyphens    { $_[0]->_update('hyphens')    }
+sub update_exceptions { $_[0]->_update('exceptions') }
+sub update_prefixes   { $_[0]->_update('prefixes')   }
 
 sub _init {
     my $self = shift;
