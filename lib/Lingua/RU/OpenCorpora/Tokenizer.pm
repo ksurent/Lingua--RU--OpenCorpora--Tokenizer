@@ -407,6 +407,18 @@ Contains a list of hyphenated Russian words. Used in vectors calculations.
 
 Built by OpenCorpora project from semi-automatically annotated corpus.
 
+=head2 EXCEPTIONS FILE
+
+Contains a list of char sequences that are not subjects to tokenizing.
+
+Built by OpenCorpora project from semi-automatically annotated corpus.
+
+=head2 PREFIXES FILE
+
+Contains a list of common prefixes for decompound words.
+
+Built by OpenCorpora project from semi-automatically annotated corpus.
+
 =head1 METHODS
 
 =head2 new
