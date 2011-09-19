@@ -320,7 +320,7 @@ sub _looks_like_url {
     return 0 unless $chain_right;
     return 0 if $chain =~ /^\./;
 
-    ($chain =~ m{^\W*https://} or $chain =~ m{.\.(?:ru|ua|com|org|gov|us|ру|рф)\W*$}i)
+    ($chain =~ m{^\W*https?://} or $chain =~ m{.\.(?:ru|ua|com|org|gov|us|ру|рф)\W*$}i)
         ? 1
         : 0;
 }
