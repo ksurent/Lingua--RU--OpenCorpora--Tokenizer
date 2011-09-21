@@ -44,7 +44,7 @@ sub _do_tokenize {
 
     my $token;
     for(my $i = 0; $i <= $#{ $chars }; $i++) {
-        my $context = {
+        my $ctx = {
             char      => $chars->[$i],
             prevchar  => $i ? $chars->[$i - 1] : '',
             nextchar  => $chars->[$i + 1] // '',
@@ -52,14 +52,14 @@ sub _do_tokenize {
             pos       => $i,
         };
 
-        $self->_get_char_chains($context);
-        $self->_vector($context);
+        $self->_get_char_chains($ctx);
+        $self->_vector($ctx);
 
         $token .= $chars->[$i];
 
-        my $coeff = $self->{vectors}{$context->{vector}} // 0.5;
+        my $coeff = $self->{vectors}{$ctx->{vector}} // 0.5;
         if($coeff) {
-            push @{ $self->{bounds} }, [$context->{pos} + 2, $coeff];
+            push @{ $self->{bounds} }, [$ctx->{pos} + 2, $coeff];
 
             $token =~ s{^\s+|\s+$}{};
             push @{ $self->{tokens} }, $token if $token;
@@ -69,14 +69,14 @@ sub _do_tokenize {
 }
 
 sub _get_char_chains {
-    my($self, $context) = @_;
+    my($self, $ctx) = @_;
 
     my $chain = my $chain_left = my $chain_right = '';
     my $spacer = '';
 
     if(
-        $context->{nextchar} =~ m|([-./?=:&"!+()])|
-        or $context->{char} =~ m|([-./?=:&"!+()])|
+        $ctx->{nextchar} =~ m|([-./?=:&"!+()])|
+        or $ctx->{char} =~ m|([-./?=:&"!+()])|
     )
     {
         $spacer = $1;
@@ -84,7 +84,7 @@ sub _get_char_chains {
 
     if(length $spacer) {
         # go left
-        for(my $i = $context->{pos}; $i >= 0; $i--) {
+        for(my $i = $ctx->{pos}; $i >= 0; $i--) {
             my $ch = $self->{chars}[$i];
 
             my $case1 = !!(
@@ -112,7 +112,7 @@ sub _get_char_chains {
         }
 
         # go right
-        for(my $i = $context->{pos} + 1; $i <= $#{ $self->{chars} }; $i++) {
+        for(my $i = $ctx->{pos} + 1; $i <= $#{ $self->{chars} }; $i++) {
             my $ch = $self->{chars}[$i];
 
             my $case1 = !!(
@@ -142,48 +142,48 @@ sub _get_char_chains {
         $chain = join '', $chain_left, $spacer, $chain_right;
     }
 
-    $context->{spacer}      = $spacer;
-    $context->{chain}       = $chain;
-    $context->{chain_left}  = $chain_left;
-    $context->{chain_right} = $chain_right;
+    $ctx->{spacer}      = $spacer;
+    $ctx->{chain}       = $chain;
+    $ctx->{chain_left}  = $chain_left;
+    $ctx->{chain_right} = $chain_right;
 
     return;
 }
 
 sub _vector {
-    my($self, $context) = @_;
+    my($self, $ctx) = @_;
 
-    my $spacer           = !!length $context->{spacer};
-    my $spacer_is_hyphen = $spacer and $self->_is_hyphen($context->{spacer});
+    my $spacer           = !!length $ctx->{spacer};
+    my $spacer_is_hyphen = $spacer and $self->_is_hyphen($ctx->{spacer});
 
     my @bits = (
-        $self->_char_class($context->{char}),
-        $self->_char_class($context->{nextchar}),
-        $self->_is_digit($context->{prevchar}),
-        $self->_is_digit($context->{nnextchar}),
+        $self->_char_class($ctx->{char}),
+        $self->_char_class($ctx->{nextchar}),
+        $self->_is_digit($ctx->{prevchar}),
+        $self->_is_digit($ctx->{nnextchar}),
         $spacer_is_hyphen
-            ? $self->_is_dict_chain($context->{chain})
+            ? $self->_is_dict_chain($ctx->{chain})
             : 0,
         $spacer_is_hyphen
-            ? $self->_is_suffix($context->{chain_right})
+            ? $self->_is_suffix($ctx->{chain_right})
             : 0,
-        $self->_is_same_pm($context->{char}, $context->{nextchar}),
+        $self->_is_same_pm($ctx->{char}, $ctx->{nextchar}),
         ($spacer and not $spacer_is_hyphen)
-            ? $self->_looks_like_url($context->{chain}, $context->{chain_right})
+            ? $self->_looks_like_url($ctx->{chain}, $ctx->{chain_right})
             : 0,
         ($spacer and not $spacer_is_hyphen)
-            ? $self->_is_exception_chain($context->{chain})
+            ? $self->_is_exception_chain($ctx->{chain})
             : 0,
         $spacer_is_hyphen
-            ? $self->_is_prefix($context->{chain_left})
+            ? $self->_is_prefix($ctx->{chain_left})
             : 0,
-        ($self->_is_colon($context->{spacer}) and length $context->{chain_right})
-            ? $self->_looks_like_time($context->{chain_left}, $context->{chain_right})
+        ($self->_is_colon($ctx->{spacer}) and length $ctx->{chain_right})
+            ? $self->_looks_like_time($ctx->{chain_left}, $ctx->{chain_right})
             : 0,
     );
 
     local $" = '';
-    $context->{vector} = oct "0b@bits";
+    $ctx->{vector} = oct "0b@bits";
 
     return;
 }
