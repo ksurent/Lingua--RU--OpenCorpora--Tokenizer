@@ -44,6 +44,16 @@ DESCRIPTION
 
     Built by OpenCorpora project from semi-automatically annotated corpus.
 
+  EXCEPTIONS FILE
+    Contains a list of char sequences that are not subjects to tokenizing.
+
+    Built by OpenCorpora project from semi-automatically annotated corpus.
+
+  PREFIXES FILE
+    Contains a list of common prefixes for decompound words.
+
+    Built by OpenCorpora project from semi-automatically annotated corpus.
+
 METHODS
   new
     Constructs and initializes new tokenizer object.
