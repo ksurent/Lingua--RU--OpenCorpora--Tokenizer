@@ -192,9 +192,23 @@ sub _init {
     my $self = shift;
 
     $self->_load_vectors;
-    $self->_load_hyphens;
-    $self->_load_prefixes;
-    $self->_load_exceptions;
+    $self->_load_list('hyphens');
+    $self->_load_list('prefixes');
+    $self->_load_list('exceptions');
+
+    return;
+}
+
+sub _load_list {
+    my($self, $list) = @_;
+
+    my $file = Lingua::RU::OpenCorpora::Tokenizer::Updater->_path($list);
+    open my $fh, '<:utf8', $file or croak "$file: $!";
+    <$fh>; # skip version
+    my %data = map { chomp; $_, undef } <$fh>;
+    close $fh;
+
+    $self->{$list} = \%data;
 
     return;
 }
@@ -209,48 +223,6 @@ sub _load_vectors {
     close $fh;
 
     $self->{vectors} = \%vectors;
-
-    return;
-}
-
-sub _load_hyphens {
-    my $self = shift;
-
-    my $file = Lingua::RU::OpenCorpora::Tokenizer::Updater->_path('hyphens');
-    open my $fh, '<:utf8', $file or croak "$file: $!";
-    <$fh>; # skip version
-    my %hyphens = map { chomp; $_, undef } <$fh>;
-    close $fh;
-
-    $self->{hyphens} = \%hyphens;
-
-    return;
-}
-
-sub _load_prefixes {
-    my $self = shift;
-
-    my $file = Lingua::RU::OpenCorpora::Tokenizer::Updater->_path('prefixes');
-    open my $fh, '<:utf8', $file or croak "$file: $!";
-    <$fh>; # skip version
-    my %prefixes = map { chomp; $_, undef } <$fh>;
-    close $fh;
-
-    $self->{prefixes} = \%prefixes;
-
-    return;
-}
-
-sub _load_exceptions {
-    my $self = shift;
-
-    my $file = Lingua::RU::OpenCorpora::Tokenizer::Updater->_path('exceptions');
-    open my $fh, '<:utf8', $file or croak "$file: $!";
-    <$fh>; # skip version
-    my %exceptions = map { chomp; $_, undef } <$fh>;
-    close $fh;
-
-    $self->{exceptions} = \%exceptions;
 
     return;
 }
