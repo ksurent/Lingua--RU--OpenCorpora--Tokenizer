@@ -7,3 +7,5 @@ inc
 slow.log
 *.tar.gz
 test.pl
+*.png
+*.log
