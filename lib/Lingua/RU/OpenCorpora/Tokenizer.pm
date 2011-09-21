@@ -154,7 +154,7 @@ sub _vector {
     my($self, $ctx) = @_;
 
     my $spacer           = !!length $ctx->{spacer};
-    my $spacer_is_hyphen = $spacer and $self->_is_hyphen($ctx->{spacer});
+    my $spacer_is_hyphen = $spacer && $self->_is_hyphen($ctx->{spacer});
 
     my @bits = (
         $self->_char_class($ctx->{char}),
