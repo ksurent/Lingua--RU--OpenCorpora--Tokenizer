@@ -52,7 +52,7 @@ sub _do_tokenize {
             pos       => $i,
         };
 
-        $self->_get_char_chains($ctx);
+        $self->_get_char_sequences($ctx);
         $self->_vector($ctx);
 
         $token .= $chars->[$i];
@@ -68,10 +68,10 @@ sub _do_tokenize {
     }
 }
 
-sub _get_char_chains {
+sub _get_char_sequences {
     my($self, $ctx) = @_;
 
-    my $chain = my $chain_left = my $chain_right = '';
+    my $seq = my $seq_left = my $seq_right = '';
     my $spacer = '';
 
     if(
@@ -101,14 +101,14 @@ sub _get_char_chains {
             );
 
             if($case1 or $case2) {
-                $chain_left = $ch . $chain_left;
+                $seq_left = $ch . $seq_left;
             }
             else {
                 last;
             }
 
-            $chain_left = substr $chain_left, 0, -1
-                if substr($chain_left, -1) eq $spacer;
+            $seq_left = substr $seq_left, 0, -1
+                if substr($seq_left, -1) eq $spacer;
         }
 
         # go right
@@ -129,23 +129,23 @@ sub _get_char_chains {
             );
 
             if($case1 or $case2) {
-                $chain_right .= $ch;
+                $seq_right .= $ch;
             }
             else {
                 last;
             }
 
-            $chain_right = substr $chain_right, 0, 1
-                if substr($chain_right, -1) eq $spacer;
+            $seq_right = substr $seq_right, 0, 1
+                if substr($seq_right, -1) eq $spacer;
         }
 
-        $chain = join '', $chain_left, $spacer, $chain_right;
+        $seq = join '', $seq_left, $spacer, $seq_right;
     }
 
     $ctx->{spacer}      = $spacer;
-    $ctx->{chain}       = $chain;
-    $ctx->{chain_left}  = $chain_left;
-    $ctx->{chain_right} = $chain_right;
+    $ctx->{seq}       = $seq;
+    $ctx->{seq_left}  = $seq_left;
+    $ctx->{seq_right} = $seq_right;
 
     return;
 }
@@ -162,23 +162,23 @@ sub _vector {
         $self->_is_digit($ctx->{prevchar}),
         $self->_is_digit($ctx->{nnextchar}),
         $spacer_is_hyphen
-            ? $self->_is_dict_chain($ctx->{chain})
+            ? $self->_is_dict_seq($ctx->{seq})
             : 0,
         $spacer_is_hyphen
-            ? $self->_is_suffix($ctx->{chain_right})
+            ? $self->_is_suffix($ctx->{seq_right})
             : 0,
         $self->_is_same_pm($ctx->{char}, $ctx->{nextchar}),
         ($spacer and not $spacer_is_hyphen)
-            ? $self->_looks_like_url($ctx->{chain}, $ctx->{chain_right})
+            ? $self->_looks_like_url($ctx->{seq}, $ctx->{seq_right})
             : 0,
         ($spacer and not $spacer_is_hyphen)
-            ? $self->_is_exception_chain($ctx->{chain})
+            ? $self->_is_exception_seq($ctx->{seq})
             : 0,
         $spacer_is_hyphen
-            ? $self->_is_prefix($ctx->{chain_left})
+            ? $self->_is_prefix($ctx->{seq_left})
             : 0,
-        ($self->_is_colon($ctx->{spacer}) and length $ctx->{chain_right})
-            ? $self->_looks_like_time($ctx->{chain_left}, $ctx->{chain_right})
+        ($self->_is_colon($ctx->{spacer}) and length $ctx->{seq_right})
+            ? $self->_looks_like_time($ctx->{seq_left}, $ctx->{seq_right})
             : 0,
     );
 
@@ -256,54 +256,54 @@ sub _is_colon        { $_[1] eq ':' ? 1 : 0 }
 sub _is_same_pm      { $_[1] eq $_[2] ? 1 : 0 }
 
 sub _is_prefix {
-    my($self, $chain) = @_;
+    my($self, $seq) = @_;
 
-    exists $self->{prefixes}{lc $chain} ? 1 : 0;
+    exists $self->{prefixes}{lc $seq} ? 1 : 0;
 }
 
-sub _is_dict_chain {
-    my($self, $chain) = @_;
+sub _is_dict_seq {
+    my($self, $seq) = @_;
 
-    return 0 if not $chain or $chain =~ /^-/;
+    return 0 if not $seq or $seq =~ /^-/;
 
-    exists $self->{hyphens}{$chain} ? 1 : 0;
+    exists $self->{hyphens}{$seq} ? 1 : 0;
 }
 
-sub _is_exception_chain {
-    my($self, $chain) = @_;
+sub _is_exception_seq {
+    my($self, $seq) = @_;
 
-    return 1 if $self->{exceptions}{$chain};
+    return 1 if $self->{exceptions}{$seq};
 
-    return 0 unless $chain =~ /^\W|\W$/;
+    return 0 unless $seq =~ /^\W|\W$/;
 
-    $chain =~ s/^[^A-Za-zА-ЯЁа-яё0-9]+//;
-    return 1 if exists $self->{exceptions}{$chain};
+    $seq =~ s/^[^A-Za-zА-ЯЁа-яё0-9]+//;
+    return 1 if exists $self->{exceptions}{$seq};
 
-    while($chain =~ s/^[^A-Za-zА-ЯЁа-яё0-9]+//) {
-        return 1 if exists $self->{exceptions}{$chain};
+    while($seq =~ s/^[^A-Za-zА-ЯЁа-яё0-9]+//) {
+        return 1 if exists $self->{exceptions}{$seq};
     }
 
     0;
 }
 
 sub _looks_like_url {
-    my($self, $chain, $chain_right) = @_;
+    my($self, $seq, $seq_right) = @_;
 
-    return 0 unless $chain_right;
-    return 0 if $chain =~ /^\./;
+    return 0 unless $seq_right;
+    return 0 if $seq =~ /^\./;
 
-    ($chain =~ m{^\W*https?://} or $chain =~ m{.\.(?:ru|ua|com|org|gov|us|ру|рф)\W*$}i)
+    ($seq =~ m{^\W*https?://} or $seq =~ m{.\.(?:ru|ua|com|org|gov|us|ру|рф)\W*$}i)
         ? 1
         : 0;
 }
 
 sub _looks_like_time {
-    my($self, $chain_left, $chain_right) = @_;
+    my($self, $seq_left, $seq_right) = @_;
 
-    return 0 if $chain_left  !~ /^[0-9]{1,2}$/
-             or $chain_right !~ /^[0-9]{2}$/;
+    return 0 if $seq_left  !~ /^[0-9]{1,2}$/
+             or $seq_right !~ /^[0-9]{2}$/;
 
-    ($chain_left < 24 and $chain_right < 60)
+    ($seq_left < 24 and $seq_right < 60)
         ? 1
         : 0;
 }
