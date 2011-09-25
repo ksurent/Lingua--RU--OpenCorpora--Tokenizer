@@ -20,23 +20,30 @@ sub new {
 }
 
 sub tokens {
-    my($self, $text) = @_;
+    my($self, $text, $options) = @_;
 
-    $self->_do_tokenize($text);
+    $options = {} unless defined $options;
+    $options->{want_tokens} = 1;
+    $options->{threshold} //= 1;
+
+    $self->_do_tokenize($text, $options);
 
     $self->{tokens};
 }
 
 sub tokens_bounds {
-    my($self, $text) = @_;
+    my($self, $text, $options) = @_;
 
-    $self->_do_tokenize($text);
+    $options = {} unless defined $options;
+    $options->{want_tokens} = 0;
+
+    $self->_do_tokenize($text, $options);
 
     $self->{bounds};
 }
 
 sub _do_tokenize {
-    my($self, $text) = @_;
+    my($self, $text, $options) = @_;
 
     my $chars = $self->{chars} = [split //, $text];
     $self->{bounds} = [];
@@ -55,15 +62,22 @@ sub _do_tokenize {
         $self->_get_char_sequences($ctx);
         $self->_vector($ctx);
 
-        $token .= $chars->[$i];
-
         my $coeff = $self->{vectors}{$ctx->{vector}} // 0.5;
-        if($coeff) {
-            push @{ $self->{bounds} }, [$ctx->{pos} + 2, $coeff];
+        if($options->{want_tokens}) {
+            $token .= $chars->[$i];
 
-            $token =~ s{^\s+|\s+$}{};
-            push @{ $self->{tokens} }, $token if $token;
-            $token = '';
+            if($coeff >= $options->{threshold}) {
+                $token =~ s{^\s+|\s+$}{};
+                push @{ $self->{tokens} }, $token if $token;
+                $token = '';
+            }
+            else {
+            }
+        }
+        else {
+            if($coeff) {
+                push @{ $self->{bounds} }, [$ctx->{pos} + 2, $coeff];
+            }
         }
     }
 }
@@ -142,7 +156,7 @@ sub _get_char_sequences {
         $seq = join '', $seq_left, $spacer, $seq_right;
     }
 
-    $ctx->{spacer}      = $spacer;
+    $ctx->{spacer}    = $spacer;
     $ctx->{seq}       = $seq;
     $ctx->{seq_left}  = $seq_left;
     $ctx->{seq_right} = $seq_right;
@@ -177,13 +191,12 @@ sub _vector {
         $spacer_is_hyphen
             ? $self->_is_prefix($ctx->{seq_left})
             : 0,
-        ($self->_is_colon($ctx->{spacer}) and length $ctx->{seq_right})
+        ($self->_is_colon($ctx->{spacer}) and !!length $ctx->{seq_right})
             ? $self->_looks_like_time($ctx->{seq_left}, $ctx->{seq_right})
             : 0,
     );
 
-    local $" = '';
-    $ctx->{vector} = oct "0b@bits";
+    $ctx->{vector} = oct join '', '0b', @bits;
 
     return;
 }
