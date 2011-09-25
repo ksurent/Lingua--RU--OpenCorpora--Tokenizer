@@ -2,11 +2,13 @@ use utf8;
 no warnings qw(qw);
 use open qw(:std :utf8);
 
-use Test::More qw(no_plan);
+use Test::More;
 use Test::Number::Delta;
 use Test::Deep;
 
 use Lingua::RU::OpenCorpora::Tokenizer;
+
+plan skip_all => 'Tests disabled for now';
 
 my @tests = (
     [
@@ -47,6 +49,24 @@ my @tests = (
             ещё
             простое
             .
+        )],
+    ],
+    [
+        'Текст с двоеточием на конце:',
+        [
+            [6,  1],
+            [8,  1],
+            [19, 1],
+            [22, 1],
+            [28, 1],
+        ],
+        [qw(
+            Текст
+            с
+            двоеточием
+            на
+            конце
+            :
         )],
     ],
 );
