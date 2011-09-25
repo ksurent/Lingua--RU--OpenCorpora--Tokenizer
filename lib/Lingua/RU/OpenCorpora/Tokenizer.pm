@@ -410,9 +410,21 @@ Built by OpenCorpora project from semi-automatically annotated corpus.
 
 Constructs and initializes new tokenizer object.
 
-=head2 tokens($text)
+=head2 tokens($text [, $options])
 
 Takes text as input and splits it into tokens. Returns a reference to an array of tokens.
+
+You can also pass a hashref with options as a second argument. Current options:
+
+=over 4
+
+=item threshold
+
+Minimal probability value for tokens boundary. Boundaries with lower probability are excluded from consideration.
+
+Default value is 1, which makes tokenizer do splitting only when it's confident.
+
+=back
 
 =head2 tokens_bounds($text)
 
