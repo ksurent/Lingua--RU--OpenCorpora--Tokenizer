@@ -26,7 +26,7 @@ DESCRIPTION
 
   CONTEXT
     In terms of this module context is just a binary vector, currently
-    consisting of 27 elements. It's calculated for every character of the
+    consisting of 17 elements. It's calculated for every character of the
     text, then it gets converted to decimal representation and then it's
     checked against "VECTORS FILE". Every element is a result of a simple
     function like "_is_latin", "_is_digit", "_is_bracket" and etc. applied
