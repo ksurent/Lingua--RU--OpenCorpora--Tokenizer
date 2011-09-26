@@ -1,7 +1,6 @@
 package Lingua::RU::OpenCorpora::Tokenizer;
 
 use utf8;
-use v5.10;
 use strict;
 use warnings;
 
@@ -24,7 +23,7 @@ sub tokens {
 
     $options = {} unless defined $options;
     $options->{want_tokens} = 1;
-    $options->{threshold} //= 1;
+    $options->{threshold}   = 1 unless defined $options->{threshold};
 
     $self->_do_tokenize($text, $options);
 
@@ -54,15 +53,19 @@ sub _do_tokenize {
         my $ctx = {
             char      => $chars->[$i],
             prevchar  => $i ? $chars->[$i - 1] : '',
-            nextchar  => $chars->[$i + 1] // '',
-            nnextchar => $chars->[$i + 2] // '',
+            nextchar  => $chars->[$i + 1],
+            nnextchar => $chars->[$i + 2],
             pos       => $i,
         };
+        not defined $ctx->{$_} and $ctx->{$_} = ''
+            for qw(nextchar nnextchar);
 
         $self->_get_char_sequences($ctx);
         $self->_vector($ctx);
 
-        my $coeff = $self->{vectors}{$ctx->{vector}} // 0.5;
+        my $coeff = $self->{vectors}{$ctx->{vector}};
+        $coeff    = 0.5 unless defined $coeff;
+
         if($options->{want_tokens}) {
             $token .= $chars->[$i];
 
