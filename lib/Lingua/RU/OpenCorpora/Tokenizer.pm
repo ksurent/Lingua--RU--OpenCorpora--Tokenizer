@@ -69,12 +69,14 @@ sub _do_tokenize {
         if($options->{want_tokens}) {
             $token .= $chars->[$i];
 
-            if($coeff >= $options->{threshold}) {
+            if(
+                $coeff >= $options->{threshold}
+                or $ctx->{pos} == $#{ $chars }
+            )
+            {
                 $token =~ s{^\s+|\s+$}{};
                 push @{ $self->{tokens} }, $token if $token;
                 $token = '';
-            }
-            else {
             }
         }
         else {
