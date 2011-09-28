@@ -5,6 +5,7 @@
 	- INCOMPATIBLE CHANGE: tokens() method now takes threshold option which
 	changes its behaviour
 	- INCOMPATIBLE CHANGE: tokens_bounds() method doesn't store tokens anymore
+	- disabled tests for now
 
 0.02 - Fri Sep 9 2011
 	- fixed tests
