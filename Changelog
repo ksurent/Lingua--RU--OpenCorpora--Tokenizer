@@ -1,3 +1,11 @@
+0.03 - Wed Sep 28 2011
+	- few algorithm and documentation bugfixes
+	- new and updated data
+	- now works with perl >= 5.8.5
+	- INCOMPATIBLE CHANGE: tokens() method now takes threshold option which
+	changes its behaviour
+	- INCOMPATIBLE CHANGE: tokens_bounds() method doesn't store tokens anymore
+
 0.02 - Fri Sep 9 2011
 	- fixed tests
 	- added Changelog

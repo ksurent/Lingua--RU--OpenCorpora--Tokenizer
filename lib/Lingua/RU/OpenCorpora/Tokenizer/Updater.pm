@@ -9,7 +9,7 @@ use Carp qw(croak);
 use File::ShareDir qw(dist_dir);
 use IO::Uncompress::Gunzip qw(gunzip $GunzipError);
 
-our $VERSION = 0.02;
+our $VERSION = 0.03;
 
 sub new {
     my $class = shift;
