@@ -7,5 +7,7 @@ inc
 slow.log
 *.tar.gz
 test.pl
+correctness.pl
+bench.pl
 *.png
 *.log
