@@ -71,7 +71,7 @@ sub _get_current_version {
     my($self, $mode) = @_;
 
     my $file = $self->_path($mode);
-    open $fh, '<', $file or croak "$file: $!";
+    open my $fh, '<', $file or croak "$file: $!";
     $self->{"${mode}_current"} = <$fh>;
     chomp $self->{"${mode}_current"};
     close $fh;
