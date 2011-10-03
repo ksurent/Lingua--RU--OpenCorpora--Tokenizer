@@ -1,43 +1,43 @@
 #!/usr/bin/env perl
 
-use v5.10;
 use strict;
 use warnings;
 
 use Pod::Usage;
 use Getopt::Long;
+use List::MoreUtils qw(none);
 use Lingua::RU::OpenCorpora::Tokenizer::Updater;
+
+my @modes = qw(vectors hyphens exceptions prefixes);
 
 GetOptions(
     \my %opts,
     'help',
-    'hyphens',
-    'vectors',
     'force',
     'quiet',
+    'all',
+    @modes,
 );
 usage(2) if $opts{help};
-usage() if not $opts{vectors} and not $opts{hyphens};
+usage() if none { $opts{$_} } @modes, 'all';
 
 my $updater = Lingua::RU::OpenCorpora::Tokenizer::Updater->new;
 
-if($opts{vectors} or $opts{force}) {
-    if($updater->vectors_update_available) {
-        say "Vectors: $updater->{vectors_current} -> $updater->{vectors_latest}" unless $opts{quiet};
-        $updater->update_vectors;
-    }
-    else {
-        say "No update available for vectors" unless $opts{quiet};
-    }
-}
+for my $mode (@modes) {
+    if($opts{$mode} or $opts{all}) {
+        my $available_method  = "${mode}_update_available";
+        my $update_method     = "update_$mode";
 
-if($opts{hyphens} or $opts{force}) {
-    if($updater->hyphens_update_available) {
-        say "Hyphens: $updater->{hyphens_current} -> $updater->{hyphens_latest}" unless $opts{quiet};
-        $updater->update_hyphens;
-    }
-    else {
-        say "No update available for hyphens" unless $opts{quiet};
+        my $current = "${mode}_current";
+        my $latest  = "${mode}_latest";
+
+        if($updater->$available_method) {
+            print "$mode: ", $updater->{$current}, ' -> ', $updater->{$latest}, $/ unless $opts{quiet};
+            $updater->$update_method;
+        }
+        else {
+            print "No update available for $mode $/" unless $opts{quiet};
+        }
     }
 }
 
@@ -55,9 +55,9 @@ OpenCorpora tokenizer uses pre-calculated data stored in local files. This tool 
 
 =head1 SYNOPSIS
 
-opencorpora-update-tokenizer [options]
+opencorpora-update-tokenizer <mode> [options]
 
-Options:
+=head2 MODES
 
 =over 4
 
@@ -68,6 +68,24 @@ Update vectors file
 =item --hyphens
 
 Update hyphens file
+
+=item --prefixes
+
+Update prefixes file
+
+=item --exceptions
+
+Update exceptions file
+
+=item --all
+
+Update all files
+
+=back
+
+=head2 OPTIONS
+
+=over 4
 
 =item --force
 
@@ -82,5 +100,3 @@ Suppress any informational messages
 Show this message
 
 =back
-
-Note that you must specify either --vectors or --hyphens option.
