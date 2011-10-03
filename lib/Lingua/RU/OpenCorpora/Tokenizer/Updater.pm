@@ -15,14 +15,14 @@ sub new {
     my $class = shift;
 
     my $self = bless {
-        vectors_latest    => 'http://wiki.iphil.ru/corpus/files/tokenizer/vectors.latest',
-        vectors_url       => 'http://wiki.iphil.ru/corpus/files/tokenizer/vectors.gz',
-        hyphens_latest    => 'http://wiki.iphil.ru/corpus/files/tokenizer/hyphens.latest',
-        hyphens_url       => 'http://wiki.iphil.ru/corpus/files/tokenizer/hyphens.gz',
-        exceptions_latest => 'http://wiki.iphil.ru/corpus/files/tokenizer/exceptions.latest',
-        exceptions_url    => 'http://wiki.iphil.ru/corpus/files/tokenizer/exceptions.gz',
-        prefixes_latest   => 'http://wiki.iphil.ru/corpus/files/tokenizer/prefixes.latest',
-        prefixes_url      => 'http://wiki.iphil.ru/corpus/files/tokenizer/prefixes.gz',
+        vectors_latest    => 'http://opencorpora.org/files/export/tokenizer_data/vectors.latest',
+        vectors_url       => 'http://opencorpora.org/files/export/tokenizer_data/vectors.gz',
+        hyphens_latest    => 'http://opencorpora.org/files/export/tokenizer_data/hyphens.latest',
+        hyphens_url       => 'http://opencorpora.org/files/export/tokenizer_data/hyphens.gz',
+        exceptions_latest => 'http://opencorpora.org/files/export/tokenizer_data/exceptions.latest',
+        exceptions_url    => 'http://opencorpora.org/files/export/tokenizer_data/exceptions.gz',
+        prefixes_latest   => 'http://opencorpora.org/files/export/tokenizer_data/prefixes.latest',
+        prefixes_url      => 'http://opencorpora.org/files/export/tokenizer_data/prefixes.gz',
 
     }, $class;
     $self->_init;
@@ -62,16 +62,18 @@ sub _init {
     );
     $self->{ua} = $ua;
 
-    my $vectors_file = $self->_path('vectors');
-    open my $fh, '<', $vectors_file or croak "$vectors_file: $!";
-    $self->{vectors_current} = <$fh>;
-    chomp $self->{vectors_current};
-    close $fh;
+    $self->_get_current_version($_) for qw(vectors hyphens prefixes exceptions);
 
-    my $hyphens_file = $self->_path('hyphens');
-    open $fh, '<', $hyphens_file or croak "$hyphens_file: $!";
-    $self->{hyphens_current} = <$fh>;
-    chomp $self->{hyphens_current};
+    return;
+}
+
+sub _get_current_version {
+    my($self, $mode) = @_;
+
+    my $file = $self->_path($mode);
+    open $fh, '<', $file or croak "$file: $!";
+    $self->{"${mode}_current"} = <$fh>;
+    chomp $self->{"${mode}_current"};
     close $fh;
 
     return;
