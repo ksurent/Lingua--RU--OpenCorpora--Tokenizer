@@ -5,6 +5,7 @@ readme_from 'lib/Lingua/RU/OpenCorpora/Tokenizer.pm';
 
 requires 'LWP::UserAgent';
 requires 'File::ShareDir';
+requires 'List::MoreUtils';
 requires 'IO::Uncompress::Gunzip';
 
 test_requires 'Test::Deep';
