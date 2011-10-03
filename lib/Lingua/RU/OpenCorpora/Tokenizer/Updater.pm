@@ -47,19 +47,6 @@ sub _init {
         agent     => __PACKAGE__ . ' ' . $VERSION . ', ',
         env_proxy => 1,
     );
-    $ua->default_header('Accept-Encoding' => 'gzip, identity');
-    my %m_spec = (
-        m_code       => 200,
-        m_media_type => 'application/x-gzip',
-    );
-    $ua->add_handler(
-        response_header => sub { $_[0]->{default_add_content} = 1 },
-        %m_spec,
-    );
-    $ua->add_handler(
-        response_done => \&_uncompress,
-        %m_spec,
-    );
     $self->{ua} = $ua;
 
     $self->_get_current_version($_) for qw(vectors hyphens prefixes exceptions);
@@ -92,10 +79,15 @@ sub _update_available {
 sub _update {
     my($self, $mode) = @_;
 
-    my $res = $self->{ua}->get(
-        $self->{"${mode}_url"},
-        ':content_file' => $self->_path($mode),
-    );
+    my $url = $self->{"${mode}_url"};
+    my $res = $self->{ua}->get($url);
+    croak "$url: " . $res->code unless $res->is_success;
+
+    my $file = $self->_path($mode);
+    gunzip \$res->content, \my $output or croak "$file: $GunzipError";
+    open my $fh, '>', $file or croak "$file: $!";
+    print $fh $output;
+    close $fh;
 
     $res->is_success;
 }
@@ -104,16 +96,6 @@ sub _path {
     my($self, $mode) = @_;
 
     File::Spec->catfile(dist_dir('Lingua-RU-OpenCorpora-Tokenizer'), $mode);
-}
-
-sub _uncompress {
-    my $res = shift;
-    my $output;
-
-    gunzip \$res->content, \$output or croak $GunzipError;
-    $res->content($output);
-
-    return;
 }
 
 1;
