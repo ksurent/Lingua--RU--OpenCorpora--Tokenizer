@@ -15,15 +15,7 @@ sub new {
     my $class = shift;
 
     my $self = bless {
-        vectors_latest    => 'http://opencorpora.org/files/export/tokenizer_data/vectors.latest',
-        vectors_url       => 'http://opencorpora.org/files/export/tokenizer_data/vectors.gz',
-        hyphens_latest    => 'http://opencorpora.org/files/export/tokenizer_data/hyphens.latest',
-        hyphens_url       => 'http://opencorpora.org/files/export/tokenizer_data/hyphens.gz',
-        exceptions_latest => 'http://opencorpora.org/files/export/tokenizer_data/exceptions.latest',
-        exceptions_url    => 'http://opencorpora.org/files/export/tokenizer_data/exceptions.gz',
-        prefixes_latest   => 'http://opencorpora.org/files/export/tokenizer_data/prefixes.latest',
-        prefixes_url      => 'http://opencorpora.org/files/export/tokenizer_data/prefixes.gz',
-
+        root_url => 'http://opencorpora.org/files/export/tokenizer_data/',
     }, $class;
     $self->_init;
 
@@ -69,8 +61,10 @@ sub _get_current_version {
 sub _update_available {
     my($self, $mode) = @_;
 
-    my $res = $self->{ua}->get($self->{"${mode}_latest"});
+    my $latest_url = join '/', $self->{root_url}, $VERSION, "$mode.latest";
+    my $res        = $self->{ua}->get($latest_url);
     return unless $res->is_success;
+
     $self->{"${mode}_latest"} = $res->content;
 
     $self->{"${mode}_latest"} gt $self->{"${mode}_current"};
@@ -79,9 +73,9 @@ sub _update_available {
 sub _update {
     my($self, $mode) = @_;
 
-    my $url = $self->{"${mode}_url"};
-    my $res = $self->{ua}->get($url);
-    croak "$url: " . $res->code unless $res->is_success;
+    my $update_url = join '/', $self->{root_url}, $VERSION, "$mode.gz";
+    my $res        = $self->{ua}->get($update_url);
+    croak "$update_url: " . $res->code unless $res->is_success;
 
     my $file = $self->_path($mode);
     gunzip \$res->content, \my $output or croak "$file: $GunzipError";
