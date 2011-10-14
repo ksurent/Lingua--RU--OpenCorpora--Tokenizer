@@ -12,7 +12,7 @@ our $VERSION = 0.03;
 sub new {
     my $class = shift;
 
-    my $self = bless {}, $class;
+    my $self = bless {@_}, $class;
     $self->_init;
 
     $self;
@@ -220,7 +220,7 @@ sub _init {
 sub _load_list {
     my($self, $list) = @_;
 
-    my $file = Lingua::RU::OpenCorpora::Tokenizer::Updater->_path($list);
+    my $file = Lingua::RU::OpenCorpora::Tokenizer::Updater->_path($list, $self->{data_dir});
     open my $fh, '<:utf8', $file or croak "$file: $!";
     <$fh>; # skip version
     my %data = map { chomp; $_, undef } <$fh>;
@@ -234,7 +234,7 @@ sub _load_list {
 sub _load_vectors {
     my $self = shift;
 
-    my $file = Lingua::RU::OpenCorpora::Tokenizer::Updater->_path('vectors');
+    my $file = Lingua::RU::OpenCorpora::Tokenizer::Updater->_path('vectors', $self->{data_dir});
     open my $fh, '<', $file or croak "$file: $!";
     <$fh>; # skip version
     my %vectors = map { chomp; split } <$fh>;
@@ -411,9 +411,19 @@ Built by OpenCorpora project from semi-automatically annotated corpus.
 
 =head1 METHODS
 
-=head2 new
+=head2 new(%args)
 
 Constructs and initializes new tokenizer object.
+
+Arguments are:
+
+=over 4
+
+=item data_dir
+
+Path to a directory with OpenCorpora data. Optional. Defaults to distribution directory (see L<File::ShareDir>).
+
+=back
 
 =head2 tokens($text [, $options])
 
