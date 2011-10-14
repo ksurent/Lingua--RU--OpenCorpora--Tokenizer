@@ -16,6 +16,8 @@ sub new {
 
     my $self = bless {
         root_url => 'http://opencorpora.org/files/export/tokenizer_data/',
+        data_dir => dist_dir('Lingua-RU-OpenCorpora-Tokenizer'),
+        @_,
     }, $class;
     $self->_init;
 
@@ -87,9 +89,11 @@ sub _update {
 }
 
 sub _path {
-    my($self, $mode) = @_;
+    my($self, $mode, $data_dir) = @_;
 
-    File::Spec->catfile(dist_dir('Lingua-RU-OpenCorpora-Tokenizer'), $mode);
+    $data_dir = $self->{data_dir} unless defined $data_dir;
+
+    File::Spec->catfile($data_dir, $mode);
 }
 
 1;
