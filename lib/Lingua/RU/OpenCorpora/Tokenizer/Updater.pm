@@ -10,6 +10,7 @@ use File::ShareDir qw(dist_dir);
 use IO::Uncompress::Gunzip qw(gunzip $GunzipError);
 
 our $VERSION = 0.03;
+sub data_version() { 0.03 };
 
 sub new {
     my $class = shift;
@@ -63,7 +64,7 @@ sub _get_current_version {
 sub _update_available {
     my($self, $mode) = @_;
 
-    my $latest_url = join '/', $self->{root_url}, $VERSION, "$mode.latest";
+    my $latest_url = join '/', $self->{root_url}, data_version(), "$mode.latest";
     my $res        = $self->{ua}->get($latest_url);
     return unless $res->is_success;
 
@@ -75,7 +76,7 @@ sub _update_available {
 sub _update {
     my($self, $mode) = @_;
 
-    my $update_url = join '/', $self->{root_url}, $VERSION, "$mode.gz";
+    my $update_url = join '/', $self->{root_url}, data_version(), "$mode.gz";
     my $res        = $self->{ua}->get($update_url);
     croak "$update_url: " . $res->code unless $res->is_success;
 
