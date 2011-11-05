@@ -55,8 +55,14 @@ DESCRIPTION
     Built by OpenCorpora project from semi-automatically annotated corpus.
 
 METHODS
-  new
+  new(%args)
     Constructs and initializes new tokenizer object.
+
+    Arguments are:
+
+    data_dir
+        Path to a directory with OpenCorpora data. Optional. Defaults to
+        distribution directory (see File::ShareDir).
 
   tokens($text [, $options])
     Takes text as input and splits it into tokens. Returns a reference to an
