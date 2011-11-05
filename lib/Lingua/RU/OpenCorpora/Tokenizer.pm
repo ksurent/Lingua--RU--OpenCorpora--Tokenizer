@@ -209,6 +209,12 @@ sub _vector {
 sub _init {
     my $self = shift;
 
+    $self->{updater} = Lingua::RU::OpenCorpora::Tokenizer::Updater->new(
+        defined $self->{data_dir}
+            ? (data_dir => $self->{data_dir})
+            : ()
+    );
+
     $self->_load_vectors;
     $self->_load_list('hyphens');
     $self->_load_list('prefixes');
@@ -220,7 +226,7 @@ sub _init {
 sub _load_list {
     my($self, $list) = @_;
 
-    my $file = Lingua::RU::OpenCorpora::Tokenizer::Updater->_path($list, $self->{data_dir});
+    my $file = $self->{updater}->_path($list);
     open my $fh, '<:utf8', $file or croak "$file: $!";
     <$fh>; # skip version
     my %data = map { chomp; $_, undef } <$fh>;
@@ -234,7 +240,7 @@ sub _load_list {
 sub _load_vectors {
     my $self = shift;
 
-    my $file = Lingua::RU::OpenCorpora::Tokenizer::Updater->_path('vectors', $self->{data_dir});
+    my $file = $self->{updater}->_path('vectors');
     open my $fh, '<', $file or croak "$file: $!";
     <$fh>; # skip version
     my %vectors = map { chomp; split } <$fh>;
