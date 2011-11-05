@@ -10,16 +10,19 @@ use File::ShareDir qw(dist_dir);
 use IO::Uncompress::Gunzip qw(gunzip $GunzipError);
 
 our $VERSION = 0.03;
-sub data_version() { 0.03 };
+sub data_version() { 0.03 }
 
 sub new {
     my $class = shift;
 
     my $self = bless {
         root_url => 'http://opencorpora.org/files/export/tokenizer_data/',
-        data_dir => dist_dir('Lingua-RU-OpenCorpora-Tokenizer'),
         @_,
     }, $class;
+
+    $self->{data_dir} = dist_dir('Lingua-RU-OpenCorpora-Tokenizer')
+        unless defined $self->{data_dir};
+
     $self->_init;
 
     $self;
