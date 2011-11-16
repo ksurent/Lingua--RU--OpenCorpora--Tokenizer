@@ -319,7 +319,7 @@ sub _looks_like_url {
 
     for($seq) {
         m{^\W*https?://}
-        or m{/^\W*www\.}
+        or m{^\W*www\.}
         or m<.\.(?:[a-z]{2,3}|ру|рф)\W*$>i
         or return 0;
     }
