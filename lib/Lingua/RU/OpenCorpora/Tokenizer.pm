@@ -314,11 +314,17 @@ sub _looks_like_url {
     my($self, $seq, $seq_right) = @_;
 
     return 0 unless $seq_right;
+    return 0 if length $seq < 5;
     return 0 if $seq =~ /^\./;
 
-    ($seq =~ m{^\W*https?://} or $seq =~ m{.\.(?:ru|ua|com|org|gov|us|ру|рф)\W*$}i)
-        ? 1
-        : 0;
+    for($seq) {
+        m{^\W*https?://}
+        or m{/^\W*www\.}
+        or m<.\.(?:[a-z]{2,3}|ру|рф)\W*$>i
+        or return 0;
+    }
+
+    1;
 }
 
 sub _looks_like_time {
