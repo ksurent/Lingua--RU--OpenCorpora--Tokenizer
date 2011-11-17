@@ -81,7 +81,7 @@ sub _do_tokenize {
         }
         else {
             if($coeff) {
-                push @{ $self->{bounds} }, [$ctx->{pos} + 2, $coeff];
+                push @{ $self->{bounds} }, [$ctx->{pos}, $coeff];
             }
         }
     }
