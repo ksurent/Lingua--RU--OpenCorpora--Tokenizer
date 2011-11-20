@@ -31,7 +31,7 @@ for my $mode (@modes) {
         my $current = "${mode}_current";
         my $latest  = "${mode}_latest";
 
-        if($updater->$available_method) {
+        if($updater->$available_method($opts{force})) {
             print "$mode: ", $updater->{$current}, ' -> ', $updater->{$latest}, $/ unless $opts{quiet};
             $updater->$update_method;
         }
