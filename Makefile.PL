@@ -3,12 +3,14 @@ use inc::Module::Install;
 all_from 'lib/Lingua/RU/OpenCorpora/Tokenizer.pm';
 readme_from 'lib/Lingua/RU/OpenCorpora/Tokenizer.pm';
 
+requires 'parent';
 requires 'LWP::UserAgent';
 requires 'File::ShareDir';
 requires 'List::MoreUtils';
 requires 'IO::Uncompress::Gunzip';
 
 test_requires 'Test::Deep';
+test_requires 'Test::Exception';
 test_requires 'Test::Number::Delta';
 
 install_script 'opencorpora-update-tokenizer';
