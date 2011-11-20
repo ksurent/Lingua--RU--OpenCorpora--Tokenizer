@@ -4,8 +4,8 @@ use utf8;
 use strict;
 use warnings;
 
-use Carp qw(croak);
-use Lingua::RU::OpenCorpora::Tokenizer::Updater;
+use Lingua::RU::OpenCorpora::Tokenizer::List;
+use Lingua::RU::OpenCorpora::Tokenizer::Vectors;
 
 our $VERSION = 0.03;
 
@@ -63,7 +63,7 @@ sub _do_tokenize {
         $self->_get_char_sequences($ctx);
         $self->_vector($ctx);
 
-        my $coeff = $self->{vectors}{$ctx->{vector}};
+        my $coeff = $self->{vectors}->in_list($ctx->{vector});
         $coeff    = 0.5 unless defined $coeff;
 
         if($options->{want_tokens}) {
@@ -209,44 +209,20 @@ sub _vector {
 sub _init {
     my $self = shift;
 
-    $self->{updater} = Lingua::RU::OpenCorpora::Tokenizer::Updater->new(
-        defined $self->{data_dir}
-            ? (data_dir => $self->{data_dir})
-            : ()
-    );
+    for(qw(exceptions prefixes hyphens)) {
+        my $list = Lingua::RU::OpenCorpora::Tokenizer::List->new(
+            $_,
+            {
+                data_dir => $self->{data_dir},
+            },
+        );
+        $self->{$_} = $list;
+    }
 
-    $self->_load_vectors;
-    $self->_load_list('hyphens');
-    $self->_load_list('prefixes');
-    $self->_load_list('exceptions');
-
-    return;
-}
-
-sub _load_list {
-    my($self, $list) = @_;
-
-    my $file = $self->{updater}->_path($list);
-    open my $fh, '<:utf8', $file or croak "$file: $!";
-    <$fh>; # skip version
-    my %data = map { chomp; $_, undef } <$fh>;
-    close $fh;
-
-    $self->{$list} = \%data;
-
-    return;
-}
-
-sub _load_vectors {
-    my $self = shift;
-
-    my $file = $self->{updater}->_path('vectors');
-    open my $fh, '<', $file or croak "$file: $!";
-    <$fh>; # skip version
-    my %vectors = map { chomp; split } <$fh>;
-    close $fh;
-
-    $self->{vectors} = \%vectors;
+    my $vectors = Lingua::RU::OpenCorpora::Tokenizer::Vectors->new({
+        data_dir => $self->{data_dir},
+    });
+    $self->{vectors} = $vectors;
 
     return;
 }
@@ -282,7 +258,7 @@ sub _is_same_pm      { $_[1] eq $_[2] ? 1 : 0 }
 sub _is_prefix {
     my($self, $seq) = @_;
 
-    exists $self->{prefixes}{lc $seq} ? 1 : 0;
+    $self->{prefixes}->in_list(lc $seq) ? 1 : 0;
 }
 
 sub _is_dict_seq {
@@ -290,21 +266,21 @@ sub _is_dict_seq {
 
     return 0 if not $seq or $seq =~ /^-/;
 
-    exists $self->{hyphens}{$seq} ? 1 : 0;
+    $self->{hyphens}->in_list($seq) ? 1 : 0;
 }
 
 sub _is_exception_seq {
     my($self, $seq) = @_;
 
-    return 1 if $self->{exceptions}{$seq};
+    return 1 if $self->{exceptions}->in_list($seq);
 
     return 0 unless $seq =~ /^\W|\W$/;
 
     $seq =~ s/^[^A-Za-zА-ЯЁа-яё0-9]+//;
-    return 1 if exists $self->{exceptions}{$seq};
+    return 1 if $self->{exceptions}->in_list($seq);
 
     while($seq =~ s/^[^A-Za-zА-ЯЁа-яё0-9]+//) {
-        return 1 if exists $self->{exceptions}{$seq};
+        return 1 if $self->{exceptions}->in_list($seq);
     }
 
     0;
