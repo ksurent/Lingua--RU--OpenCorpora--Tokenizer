@@ -397,6 +397,8 @@ Contains a list of common prefixes for decompound words.
 
 Built by OpenCorpora project from semi-automatically annotated corpus.
 
+NOTE: all files are stored as GZip archives and are not supposed to be edited manually.
+
 =head1 METHODS
 
 =head2 new(%args)
