@@ -54,6 +54,9 @@ DESCRIPTION
 
     Built by OpenCorpora project from semi-automatically annotated corpus.
 
+    NOTE: all files are stored as GZip archives and are not supposed to be
+    edited manually.
+
 METHODS
   new(%args)
     Constructs and initializes new tokenizer object.
