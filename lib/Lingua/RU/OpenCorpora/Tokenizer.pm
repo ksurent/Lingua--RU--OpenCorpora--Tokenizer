@@ -7,7 +7,7 @@ use warnings;
 use Lingua::RU::OpenCorpora::Tokenizer::List;
 use Lingua::RU::OpenCorpora::Tokenizer::Vectors;
 
-our $VERSION = 0.03;
+our $VERSION = 0.04;
 
 sub new {
     my $class = shift;
