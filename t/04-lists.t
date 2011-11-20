@@ -69,9 +69,9 @@ ok defined $obj, 'vectors: defined';
 ok defined $obj->{version}, 'vectors: version';
 
 for my $t (@{ $tests{ok}->{vectors} }) {
-    ok $obj->in_list($t), "vectors: $t";
+    ok defined $obj->in_list($t), "vectors: $t";
 }
 
 for my $t (@{ $tests{nok}->{vectors} }) {
-    ok !$obj->in_list($t), "vectors: $t";
+    ok !defined $obj->in_list($t), "vectors: $t";
 }
