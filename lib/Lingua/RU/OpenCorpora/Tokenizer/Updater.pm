@@ -3,35 +3,27 @@ package Lingua::RU::OpenCorpora::Tokenizer::Updater;
 use strict;
 use warnings;
 
-use File::Spec;
 use LWP::UserAgent;
 use Carp qw(croak);
-use File::ShareDir qw(dist_dir);
-use IO::Uncompress::Gunzip qw(gunzip $GunzipError);
+use Lingua::RU::OpenCorpora::Tokenizer::List;
+use Lingua::RU::OpenCorpora::Tokenizer::Vectors;
 
 our $VERSION = 0.03;
-sub data_version() { 0.03 }
 
 sub new {
     my $class = shift;
 
-    my $self = bless {
-        root_url => 'http://opencorpora.org/files/export/tokenizer_data/',
-        @_,
-    }, $class;
-
-    $self->{data_dir} = dist_dir('Lingua-RU-OpenCorpora-Tokenizer')
-        unless defined $self->{data_dir};
+    my $self = bless {@_}, $class;
 
     $self->_init;
 
     $self;
 }
 
-sub vectors_update_available    { $_[0]->_update_available('vectors')    }
-sub hyphens_update_available    { $_[0]->_update_available('hyphens')    }
-sub exceptions_update_available { $_[0]->_update_available('exceptions') }
-sub prefixes_update_available   { $_[0]->_update_available('prefixes')   }
+sub vectors_update_available    { $_[0]->_update_available('vectors', $_[1])    }
+sub hyphens_update_available    { $_[0]->_update_available('hyphens', $_[1])    }
+sub exceptions_update_available { $_[0]->_update_available('exceptions', $_[1]) }
+sub prefixes_update_available   { $_[0]->_update_available('prefixes', $_[1])   }
 
 sub update_vectors    { $_[0]->_update('vectors')    }
 sub update_hyphens    { $_[0]->_update('hyphens')    }
@@ -47,57 +39,40 @@ sub _init {
     );
     $self->{ua} = $ua;
 
-    $self->_get_current_version($_) for qw(vectors hyphens prefixes exceptions);
-
-    return;
-}
-
-sub _get_current_version {
-    my($self, $mode) = @_;
-
-    my $file = $self->_path($mode);
-    open my $fh, '<', $file or croak "$file: $!";
-    $self->{"${mode}_current"} = <$fh>;
-    chomp $self->{"${mode}_current"};
-    close $fh;
+    for(qw(exceptions prefixes hyphens)) {
+        $self->{$_} = Lingua::RU::OpenCorpora::Tokenizer::List->new($_);
+    }
+    $self->{vectors} = Lingua::RU::OpenCorpora::Tokenizer::Vectors->new;
 
     return;
 }
 
 sub _update_available {
-    my($self, $mode) = @_;
+    my($self, $mode, $force) = @_;
 
-    my $latest_url = join '/', $self->{root_url}, data_version(), "$mode.latest";
-    my $res        = $self->{ua}->get($latest_url);
-    return unless $res->is_success;
+    my $url = $self->{$mode}->_url('version');
+    my $res = $self->{ua}->get($url);
+    croak "$url: " . $res->code unless $res->is_success;
 
-    $self->{"${mode}_latest"} = $res->content;
+    chomp(my $latest = $res->content);
+    my $current = $self->{$mode}->{version};
 
-    $self->{"${mode}_latest"} gt $self->{"${mode}_current"};
+    $self->{"${mode}_latest"}  = $latest;
+    $self->{"${mode}_current"} = $current;
+
+    return $force
+        ? 1
+        : $latest > $current;
 }
 
 sub _update {
     my($self, $mode) = @_;
 
-    my $update_url = join '/', $self->{root_url}, data_version(), "$mode.gz";
-    my $res        = $self->{ua}->get($update_url);
-    croak "$update_url: " . $res->code unless $res->is_success;
+    my $url = $self->{$mode}->_url('file');
+    my $res = $self->{ua}->get($url);
+    croak "$url: " . $res->code unless $res->is_success;
 
-    my $file = $self->_path($mode);
-    gunzip \$res->content, \my $output or croak "$file: $GunzipError";
-    open my $fh, '>', $file or croak "$file: $!";
-    print $fh $output;
-    close $fh;
-
-    $res->is_success;
-}
-
-sub _path {
-    my($self, $mode, $data_dir) = @_;
-
-    $data_dir = $self->{data_dir} unless defined $data_dir;
-
-    File::Spec->catfile($data_dir, $mode);
+    $self->{$mode}->_update($res->content);
 }
 
 1;
