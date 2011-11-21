@@ -3,7 +3,7 @@ package Lingua::RU::OpenCorpora::Tokenizer::List;
 use strict;
 use warnings;
 
-our $VERSION = 0.04;
+our $VERSION = 0.05;
 
 use IO::File;
 use File::Spec;
@@ -12,7 +12,7 @@ use Encode qw(decode);
 use IO::Uncompress::Gunzip;
 use File::ShareDir qw(dist_dir);
 
-sub data_version { 0.03 }
+sub data_version { 0.04 }
 
 sub new {
     my($class, $name, $args) = @_;
@@ -100,3 +100,55 @@ sub _url {
 }
 
 1;
+
+__END__
+
+=head1 NAME
+
+Lingua::RU::OpenCorpora::Tokenizer::List - represents a data file
+
+=head1 DESCRIPTION
+
+This module provides an API to access files that are used by tokenizer.
+
+It's useful to know that this module actually has 2 versions: the code version and the data version. These versions do not depend on each other.
+
+=head1 METHODS
+
+=head2 new($name [, $args])
+
+Constructor.
+
+Takes one required argument: list name. List name is one of these: exceptions, prefixes and hyphens.
+
+Optionally you can pass a hashref with additional arguments:
+
+=over 4
+
+=item data_dir
+
+Path to the directory where vectors file is stored. Defaults to distribution directory (see L<File::ShareDir>).
+
+=back
+
+=head2 in_list($value)
+
+Checks if given value is in the list.
+
+Returns true or false correspondingly.
+
+=head1 SEE ALSO
+
+L<Lingua::RU::OpenCorpora::Tokenizer::Vectors>
+
+L<Lingua::RU::OpenCorpora::Tokenizer::Updater>
+
+L<Lingua::RU::OpenCorpora::Tokenizer>
+
+=head1 AUTHOR
+
+OpenCorpora team L<http://opencorpora.org>
+
+=head1 LICENSE
+
+This program is free software, you can redistribute it under the same terms as Perl itself.

@@ -8,7 +8,7 @@ use Carp qw(croak);
 use Lingua::RU::OpenCorpora::Tokenizer::List;
 use Lingua::RU::OpenCorpora::Tokenizer::Vectors;
 
-our $VERSION = 0.04;
+our $VERSION = 0.05;
 
 sub new {
     my $class = shift;
@@ -90,6 +90,10 @@ This module is not supposed to be used directly. Instead use C<opencorpora-updat
 =head1 SEE ALSO
 
 L<Lingua::RU::OpenCorpora::Tokenizer>
+
+L<Lingua::RU::OpenCorpora::Tokenizer::List>
+
+L<Lingua::RU::OpenCorpora::Tokenizer::Vectors>
 
 =head1 AUTHOR
 
