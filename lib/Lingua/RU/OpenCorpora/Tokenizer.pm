@@ -61,7 +61,7 @@ sub _do_tokenize {
             for qw(nextchar nnextchar);
 
         $self->_get_char_sequences($ctx);
-        $self->_vector($ctx);
+        $self->_vectorize($ctx);
 
         my $coeff = $self->{vectors}->in_list($ctx->{vector});
         $coeff    = 0.5 unless defined $coeff;
@@ -169,7 +169,15 @@ sub _get_char_sequences {
     return;
 }
 
-sub _vector {
+sub _vectorize {
+    my $ckey = join ',', $_[0]->_is_hyphen($_[1]->{spacer}),
+                         @{$_[1]}{qw(spacer prevchar char nextchar nnextchar seq_left seq seq_right)};
+    $_[1]->{vector} = $_[0]->{_vectors_cache}{$ckey} ||= $_[0]->_do_vectorize($_[1]);
+
+    return;
+}
+
+sub _do_vectorize {
     my($self, $ctx) = @_;
 
     my $spacer           = !!length $ctx->{spacer};
@@ -201,9 +209,7 @@ sub _vector {
             : 0,
     );
 
-    $ctx->{vector} = oct join '', '0b', @bits;
-
-    return;
+    oct join '', '0b', @bits;
 }
 
 sub _init {
@@ -233,9 +239,9 @@ sub _is_latin        { $_[1] =~ /^[a-zA-Z]$/ ? 1 : 0 }
 
 sub _is_cyr          { $_[1] =~ /^[а-яА-ЯЁё]$/ ? 1 : 0 }
 
-sub _is_space        { $_[1] =~ /^\s$/ ? 1 : 0 }
+sub _is_space        { $_[1] eq ' ' ? 1 : 0 }
 
-sub _is_digit        { $_[1] =~ /^\d$/ ? 1 : 0 }
+sub _is_digit        { $_[1] =~ /^[0-9]$/ ? 1 : 0 }
 
 sub _is_bracket1     { $_[1] =~ /^[\[({<]$/ ? 1 : 0 }
 
