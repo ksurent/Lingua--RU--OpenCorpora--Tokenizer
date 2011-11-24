@@ -323,20 +323,18 @@ sub _looks_like_time {
 sub _char_class {
     my($self, $char) = @_;
 
-    my $bits = $self->_is_cyr($char)          ? '0001' :
-               $self->_is_space($char)        ? '0010' :
-               $self->_is_dot($char)          ? '0011' :
-               $self->_is_pmark($char)        ? '0100' :
-               $self->_is_hyphen($char)       ? '0101' :
-               $self->_is_digit($char)        ? '0110' :
-               $self->_is_latin($char)        ? '0111' :
-               $self->_is_bracket1($char)     ? '1000' :
-               $self->_is_bracket2($char)     ? '1001' :
-               $self->_is_single_quote($char) ? '1010' :
-               $self->_is_slash($char)        ? '1011' :
-               $self->_is_colon($char)        ? '1100' : '0000';
-
-    split //, $bits;
+    $self->_is_cyr($char)          ? '0001' :
+    $self->_is_space($char)        ? '0010' :
+    $self->_is_dot($char)          ? '0011' :
+    $self->_is_pmark($char)        ? '0100' :
+    $self->_is_hyphen($char)       ? '0101' :
+    $self->_is_digit($char)        ? '0110' :
+    $self->_is_latin($char)        ? '0111' :
+    $self->_is_bracket1($char)     ? '1000' :
+    $self->_is_bracket2($char)     ? '1001' :
+    $self->_is_single_quote($char) ? '1010' :
+    $self->_is_slash($char)        ? '1011' :
+    $self->_is_colon($char)        ? '1100' : '0000';
 }
 
 1;
