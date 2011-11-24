@@ -19,11 +19,7 @@ sub new {
     $self;
 }
 
-sub in_list {
-    my($self, $value) = @_;
-
-    $self->{data}{$value};
-}
+sub in_list { $_[0]->{data}{$_[1]} }
 
 sub _parse_list {
     my($self, $list) = @_;

@@ -33,11 +33,7 @@ sub new {
     $self;
 }
 
-sub in_list {
-    my($self, $value) = @_;
-
-    exists $self->{data}{$value};
-}
+sub in_list { exists $_[0]->{data}{$_[1]} }
 
 sub _load {
     my $self = shift;
