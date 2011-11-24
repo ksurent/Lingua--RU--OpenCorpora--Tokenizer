@@ -294,7 +294,7 @@ sub _looks_like_url {
     return 0 if $seq =~ /^\./;
 
     for($seq) {
-        m{^\W*https?://}
+        m{^\W*https?://?}
         or m{^\W*www\.}
         or m<.\.(?:[a-z]{2,3}|ру|рф)\W*$>i
         or return 0;
