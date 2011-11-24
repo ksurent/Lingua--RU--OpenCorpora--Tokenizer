@@ -74,7 +74,7 @@ sub _do_tokenize {
                 or $ctx->{pos} == $#{ $chars }
             )
             {
-                $token =~ s{^\s+|\s+$}{};
+                $token =~ s{^\s+|\s+$}{}g;
                 push @{ $self->{tokens} }, $token if $token;
                 $token = '';
             }
