@@ -107,16 +107,16 @@ sub _get_char_sequences {
             my $ch = $self->{chars}[$i];
 
             my $case1 = !!(
-                $self->_is_hyphen($spacer)
+                _is_hyphen($spacer)
                 and (
-                    $self->_is_cyr($ch)
-                    or $self->_is_hyphen($ch)
-                    or $self->_is_single_quote($ch)
+                    _is_cyr($ch)
+                    or _is_hyphen($ch)
+                    or _is_single_quote($ch)
                 )
             );
             my $case2 = !!(
-                not $self->_is_hyphen($spacer)
-                and not $self->_is_space($ch)
+                not _is_hyphen($spacer)
+                and not _is_space($ch)
             );
 
             if($case1 or $case2) {
@@ -135,16 +135,16 @@ sub _get_char_sequences {
             my $ch = $self->{chars}[$i];
 
             my $case1 = !!(
-                $self->_is_hyphen($spacer)
+                _is_hyphen($spacer)
                 and (
-                    $self->_is_cyr($ch)
-                    or $self->_is_hyphen($ch)
-                    or $self->_is_single_quote($ch)
+                    _is_cyr($ch)
+                    or _is_hyphen($ch)
+                    or _is_single_quote($ch)
                 )
             );
             my $case2 = !!(
-                not $self->_is_hyphen($spacer)
-                and not $self->_is_space($ch)
+                not _is_hyphen($spacer)
+                and not _is_space($ch)
             );
 
             if($case1 or $case2) {
@@ -170,7 +170,7 @@ sub _get_char_sequences {
 }
 
 sub _vectorize {
-    my $ckey = join ',', $_[0]->_is_hyphen($_[1]->{spacer}),
+    my $ckey = join ',', _is_hyphen($_[1]->{spacer}),
                          @{$_[1]}{qw(spacer prevchar char nextchar nnextchar seq_left seq seq_right)};
     $_[1]->{vector} = $_[0]->{_vectors_cache}{$ckey} ||= $_[0]->_do_vectorize($_[1]);
 
@@ -181,31 +181,31 @@ sub _do_vectorize {
     my($self, $ctx) = @_;
 
     my $spacer           = !!length $ctx->{spacer};
-    my $spacer_is_hyphen = $spacer && $self->_is_hyphen($ctx->{spacer});
+    my $spacer_is_hyphen = $spacer && _is_hyphen($ctx->{spacer});
 
     my @bits = (
-        $self->_char_class($ctx->{char}),
-        $self->_char_class($ctx->{nextchar}),
-        $self->_is_digit($ctx->{prevchar}),
-        $self->_is_digit($ctx->{nnextchar}),
+        _char_class($ctx->{char}),
+        _char_class($ctx->{nextchar}),
+        _is_digit($ctx->{prevchar}),
+        _is_digit($ctx->{nnextchar}),
         $spacer_is_hyphen
-            ? $self->_is_dict_seq($ctx->{seq})
+            ? _is_dict_seq($self->{hyphens}, $ctx->{seq})
             : 0,
         $spacer_is_hyphen
-            ? $self->_is_suffix($ctx->{seq_right})
+            ? _is_suffix($ctx->{seq_right})
             : 0,
-        $self->_is_same_pm($ctx->{char}, $ctx->{nextchar}),
+        _is_same_pm($ctx->{char}, $ctx->{nextchar}),
         ($spacer and not $spacer_is_hyphen)
-            ? $self->_looks_like_url($ctx->{seq}, $ctx->{seq_right})
+            ? _looks_like_url($ctx->{seq}, $ctx->{seq_right})
             : 0,
         ($spacer and not $spacer_is_hyphen)
-            ? $self->_is_exception_seq($ctx->{seq})
+            ? _is_exception_seq($self->{exceptions}, $ctx->{seq})
             : 0,
         $spacer_is_hyphen
-            ? $self->_is_prefix($ctx->{seq_left})
+            ? _is_prefix($self->{prefixes}, $ctx->{seq_left})
             : 0,
         ($self->_is_colon($ctx->{spacer}) and !!length $ctx->{seq_right})
-            ? $self->_looks_like_time($ctx->{seq_left}, $ctx->{seq_right})
+            ? _looks_like_time($ctx->{seq_left}, $ctx->{seq_right})
             : 0,
     );
 
@@ -233,94 +233,94 @@ sub _init {
     return;
 }
 
-sub _is_pmark        { $_[1] =~ /^[,?!";«»]$/ ? 1 : 0 }
+sub _is_pmark        { $_[0] =~ /^[,?!";«»]$/ ? 1 : 0 }
 
-sub _is_latin        { $_[1] =~ /^[a-zA-Z]$/ ? 1 : 0 }
+sub _is_latin        { $_[0] =~ /^[a-zA-Z]$/ ? 1 : 0 }
 
-sub _is_cyr          { $_[1] =~ /^[а-яА-ЯЁё]$/ ? 1 : 0 }
+sub _is_cyr          { $_[0] =~ /^[а-яА-ЯЁё]$/ ? 1 : 0 }
 
-sub _is_digit        { $_[1] =~ /^[0-9]$/ ? 1 : 0 }
+sub _is_digit        { $_[0] =~ /^[0-9]$/ ? 1 : 0 }
 
-sub _is_bracket1     { $_[1] =~ /^[\[({<]$/ ? 1 : 0 }
+sub _is_bracket1     { $_[0] =~ /^[\[({<]$/ ? 1 : 0 }
 
-sub _is_bracket2     { $_[1] =~ /^[\])}>]$/ ? 1 : 0 }
+sub _is_bracket2     { $_[0] =~ /^[\])}>]$/ ? 1 : 0 }
 
-sub _is_suffix       { $_[1] =~ /^(?:то|таки|с|ка|де)$/ ? 1 : 0 }
+sub _is_suffix       { $_[0] =~ /^(?:то|таки|с|ка|де)$/ ? 1 : 0 }
 
-sub _is_space        { $_[1] eq ' ' ? 1 : 0 }
+sub _is_space        { $_[0] eq ' ' ? 1 : 0 }
 
-sub _is_hyphen       { $_[1] eq '-' ? 1 : 0 }
+sub _is_hyphen       { $_[0] eq '-' ? 1 : 0 }
 
-sub _is_dot          { $_[1] eq '.' ? 1 : 0 }
+sub _is_dot          { $_[0] eq '.' ? 1 : 0 }
 
-sub _is_single_quote { $_[1] eq "'" ? 1 : 0 }
+sub _is_single_quote { $_[0] eq "'" ? 1 : 0 }
 
-sub _is_slash        { $_[1] eq '/' ? 1 : 0 }
+sub _is_slash        { $_[0] eq '/' ? 1 : 0 }
 
-sub _is_colon        { $_[1] eq ':' ? 1 : 0 }
+sub _is_colon        { $_[0] eq ':' ? 1 : 0 }
 
-sub _is_same_pm      { $_[1] eq $_[2] ? 1 : 0 }
+sub _is_same_pm      { $_[0] eq $_[1] ? 1 : 0 }
 
-sub _is_prefix       { $_[0]->{prefixes}->in_list(lc $_[1]) ? 1 : 0 }
+sub _is_prefix       { $_[0]->in_list(lc $_[1]) ? 1 : 0 }
 
 sub _is_dict_seq {
     return 0 if not $_[1] or substr $_[1], 0, 1 eq '-';
 
-    $_[0]->{hyphens}->in_list($_[1]) ? 1 : 0;
+    $_[0]->in_list($_[1]) ? 1 : 0;
 }
 
 sub _is_exception_seq {
     my $seq = $_[1]; # need a copy
 
-    return 1 if $_[0]->{exceptions}->in_list($seq);
+    return 1 if $_[0]->in_list($seq);
 
     return 0 unless $seq =~ /^\W|\W$/;
 
     $seq =~ s/^[^A-Za-zА-ЯЁа-яё0-9]+//;
-    return 1 if $_[0]->{exceptions}->in_list($seq);
+    return 1 if $_[0]->in_list($seq);
 
     while($seq =~ s/^[^A-Za-zА-ЯЁа-яё0-9]+//) {
-        return 1 if $_[0]->{exceptions}->in_list($seq);
+        return 1 if $_[0]->in_list($seq);
     }
 
     0;
 }
 
 sub _looks_like_url {
-    return 0 unless $_[2];
-    return 0 if length $_[1] < 5;
-    return 0 if substr $_[1], 0, 1 eq '.';
+    return 0 unless length $_[1];
+    return 0 if length $_[0] < 5;
+    return 0 if substr $_[0], 0, 1 eq '.';
 
-    $_[1] =~ m{^\W*https?://?}
-    or $_[1] =~ m{^\W*www\.}
-    or $_[1] =~ m<.\.(?:[a-z]{2,3}|ру|рф)\W*$>i
+    $_[0] =~ m{^\W*https?://?}
+    or $_[0] =~ m{^\W*www\.}
+    or $_[0] =~ m<.\.(?:[a-z]{2,3}|ру|рф)\W*$>i
     or return 0;
 
     1;
 }
 
 sub _looks_like_time {
-    return 0 if $_[1] !~ /^[0-9]{1,2}$/
-             or $_[2] !~ /^[0-9]{2}$/;
+    return 0 if $_[0] !~ /^[0-9]{1,2}$/
+             or $_[1] !~ /^[0-9]{2}$/;
 
-    ($_[1] < 24 and $_[2] < 60)
+    ($_[0] < 24 and $_[1] < 60)
         ? 1
         : 0;
 }
 
 sub _char_class {
-    $_[0]->_is_cyr($_[1])          ? '0001' :
-    $_[0]->_is_space($_[1])        ? '0010' :
-    $_[0]->_is_dot($_[1])          ? '0011' :
-    $_[0]->_is_pmark($_[1])        ? '0100' :
-    $_[0]->_is_hyphen($_[1])       ? '0101' :
-    $_[0]->_is_digit($_[1])        ? '0110' :
-    $_[0]->_is_latin($_[1])        ? '0111' :
-    $_[0]->_is_bracket1($_[1])     ? '1000' :
-    $_[0]->_is_bracket2($_[1])     ? '1001' :
-    $_[0]->_is_single_quote($_[1]) ? '1010' :
-    $_[0]->_is_slash($_[1])        ? '1011' :
-    $_[0]->_is_colon($_[1])        ? '1100' : '0000';
+    _is_cyr($_[0])          ? '0001' :
+    _is_space($_[0])        ? '0010' :
+    _is_dot($_[0])          ? '0011' :
+    _is_pmark($_[0])        ? '0100' :
+    _is_hyphen($_[0])       ? '0101' :
+    _is_digit($_[0])        ? '0110' :
+    _is_latin($_[0])        ? '0111' :
+    _is_bracket1($_[0])     ? '1000' :
+    _is_bracket2($_[0])     ? '1001' :
+    _is_single_quote($_[0]) ? '1010' :
+    _is_slash($_[0])        ? '1011' :
+    _is_colon($_[0])        ? '1100' : '0000';
 }
 
 1;
