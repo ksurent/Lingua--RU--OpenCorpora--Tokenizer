@@ -204,7 +204,7 @@ sub _do_vectorize {
         $spacer_is_hyphen
             ? _is_prefix($self->{prefixes}, $ctx->{seq_left})
             : 0,
-        ($self->_is_colon($ctx->{spacer}) and !!length $ctx->{seq_right})
+        (_is_colon($ctx->{spacer}) and !!length $ctx->{seq_right})
             ? _looks_like_time($ctx->{seq_left}, $ctx->{seq_right})
             : 0,
     );
@@ -247,7 +247,7 @@ sub _is_bracket2     { $_[0] =~ /^[\])}>]$/ ? 1 : 0 }
 
 sub _is_suffix       { $_[0] =~ /^(?:то|таки|с|ка|де)$/ ? 1 : 0 }
 
-sub _is_space        { $_[0] eq ' ' ? 1 : 0 }
+sub _is_space        { $_[0] =~ /^\s$/ ? 1 : 0 }
 
 sub _is_hyphen       { $_[0] eq '-' ? 1 : 0 }
 
@@ -266,7 +266,7 @@ sub _is_prefix       { $_[0]->in_list(lc $_[1]) ? 1 : 0 }
 sub _is_dict_seq {
     return 0 if not $_[1] or substr $_[1], 0, 1 eq '-';
 
-    $_[0]->in_list($_[1]) ? 1 : 0;
+    $_[0]->in_list(lc $_[1]) ? 1 : 0;
 }
 
 sub _is_exception_seq {
@@ -276,10 +276,10 @@ sub _is_exception_seq {
 
     return 0 unless $seq =~ /^\W|\W$/;
 
-    $seq =~ s/^[^A-Za-zА-ЯЁа-яё0-9]+//;
+    $seq =~ s/^\W+//;
     return 1 if $_[0]->in_list($seq);
 
-    while($seq =~ s/^[^A-Za-zА-ЯЁа-яё0-9]+//) {
+    while($seq =~ s/\W$//) {
         return 1 if $_[0]->in_list($seq);
     }
 
