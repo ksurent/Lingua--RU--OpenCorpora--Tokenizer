@@ -287,7 +287,7 @@ sub _is_exception_seq {
 }
 
 sub _looks_like_url {
-    return 0 unless length $_[1];
+    return 0 unless !!length $_[1];
     return 0 if length $_[0] < 5;
     return 0 if substr $_[0], 0, 1 eq '.';
 
@@ -300,10 +300,15 @@ sub _looks_like_url {
 }
 
 sub _looks_like_time {
-    return 0 if $_[0] !~ /^[0-9]{1,2}$/
-             or $_[1] !~ /^[0-9]{2}$/;
+    my($seq_left, $seq_right) = @_; # need copies
 
-    ($_[0] < 24 and $_[1] < 60)
+    $seq_left  =~ s/^[^0-9]{1,2}//;
+    $seq_right =~ s/[^0-9]+$//;
+
+    return 0 if $seq_left !~ /^[0-9]{1,2}$/
+             or $seq_right !~ /^[0-9]{2}$/;
+
+    ($seq_left < 24 and $seq_right < 60)
         ? 1
         : 0;
 }
