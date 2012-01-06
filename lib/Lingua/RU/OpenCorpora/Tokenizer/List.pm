@@ -1,5 +1,6 @@
 package Lingua::RU::OpenCorpora::Tokenizer::List;
 
+use utf8;
 use strict;
 use warnings;
 
@@ -44,6 +45,11 @@ sub _load {
     chomp($self->{version} = $fh->getline);
 
     my @data = map decode('utf-8', lc), $fh->getlines;
+
+    # workaround for The Unicode Bug
+    # see https://metacpan.org/module/perlunicode#The-Unicode-Bug
+    utf8::upgrade($_) for @data;
+
     $self->_parse_list(\@data);
 
     $fh->close;

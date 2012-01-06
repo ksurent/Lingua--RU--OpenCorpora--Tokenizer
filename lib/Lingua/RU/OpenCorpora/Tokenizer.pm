@@ -44,6 +44,10 @@ sub tokens_bounds {
 sub _do_tokenize {
     my($self, $text, $options) = @_;
 
+    # workaround for The Unicode Bug
+    # see https://metacpan.org/module/perlunicode#The-Unicode-Bug
+    utf8::upgrade($text);
+
     my $chars = $self->{chars} = [split //, $text];
     $self->{bounds} = [];
     $self->{tokens} = [];
