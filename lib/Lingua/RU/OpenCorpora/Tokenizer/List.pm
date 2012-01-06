@@ -43,7 +43,7 @@ sub _load {
 
     chomp($self->{version} = $fh->getline);
 
-    my @data = map decode('utf-8', $_), $fh->getlines;
+    my @data = map decode('utf-8', lc), $fh->getlines;
     $self->_parse_list(\@data);
 
     $fh->close;

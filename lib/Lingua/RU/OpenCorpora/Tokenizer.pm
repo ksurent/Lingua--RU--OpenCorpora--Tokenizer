@@ -235,9 +235,9 @@ sub _init {
 
 sub _is_pmark        { $_[0] =~ /^[,?!";«»]$/ ? 1 : 0 }
 
-sub _is_latin        { $_[0] =~ /^[a-zA-Z]$/ ? 1 : 0 }
+sub _is_latin        { $_[0] =~ /^\p{Latin}$/ ? 1 : 0 }
 
-sub _is_cyr          { $_[0] =~ /^[а-яА-ЯЁё]$/ ? 1 : 0 }
+sub _is_cyr          { $_[0] =~ /^\p{Cyrillic}$/ ? 1 : 0 }
 
 sub _is_digit        { $_[0] =~ /^[0-9]$/ ? 1 : 0 }
 
@@ -270,7 +270,7 @@ sub _is_dict_seq {
 }
 
 sub _is_exception_seq {
-    my $seq = $_[1]; # need a copy
+    my $seq = lc $_[1]; # need a copy
 
     return 1 if $_[0]->in_list($seq);
 
