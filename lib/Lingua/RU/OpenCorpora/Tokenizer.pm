@@ -265,16 +265,16 @@ sub _is_colon        { $_[0] eq ':' ? 1 : 0 }
 
 sub _is_same_pm      { $_[0] eq $_[1] ? 1 : 0 }
 
-sub _is_prefix       { $_[0]->in_list(lc $_[1]) ? 1 : 0 }
+sub _is_prefix       { $_[0]->in_list($_[1]) ? 1 : 0 }
 
 sub _is_dict_seq {
     return 0 if not $_[1] or substr $_[1], 0, 1 eq '-';
 
-    $_[0]->in_list(lc $_[1]) ? 1 : 0;
+    $_[0]->in_list($_[1]) ? 1 : 0;
 }
 
 sub _is_exception_seq {
-    my $seq = lc $_[1]; # need a copy
+    my $seq = $_[1]; # need a copy
 
     return 1 if $_[0]->in_list($seq);
 

@@ -34,7 +34,7 @@ sub new {
     $self;
 }
 
-sub in_list { exists $_[0]->{data}{$_[1]} }
+sub in_list { exists $_[0]->{data}{lc $_[1]} }
 
 sub _load {
     my $self = shift;
