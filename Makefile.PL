@@ -11,7 +11,6 @@ requires 'IO::Uncompress::Gunzip';
 
 test_requires 'Test::Deep';
 test_requires 'Test::Exception';
-test_requires 'Test::Number::Delta';
 
 install_script 'opencorpora-update-tokenizer';
 install_share  'share';
