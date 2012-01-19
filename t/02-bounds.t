@@ -3,70 +3,36 @@ no warnings qw(qw);
 use open qw(:std :utf8);
 
 use Test::More qw(no_plan);
-use Test::Number::Delta;
 use Test::Deep;
 
 use Lingua::RU::OpenCorpora::Tokenizer;
 
+use constant THRESHOLD => $ENV{TOKENIZER_THRESHOLD} || 0.5;
+
 my @tests = (
     [
         'Простейшее предложение.',
-        [
-            [9,  1],
-            [21, 1],
-            [22, 1],
-        ],
+        [9, 21, 22],
     ],
     [
         'Это предложение чуть сложнее, но все ещё простое.',
-        [
-            [2,  1],
-            [14, 1],
-            [19, 1],
-            [27, 1],
-            [28, 1],
-            [31, 1],
-            [35, 1],
-            [39, 1],
-            [47, 1],
-            [48, 1],
-        ],
+        [2, 14, 19, 27, 28, 31, 35, 39, 47, 48],
     ],
     [
         'Текст с двоеточием на конце:',
-        [
-            [4,  1],
-            [6,  1],
-            [17, 1],
-            [20, 1],
-            [26, 1],
-        ],
+        [4, 6, 17, 20, 26],
     ],
     [
         '«Школа злословия» учит прикусить язык',
-        [
-            [0,  1],
-            [5,  1],
-            [15, 1],
-            [16, 1],
-            [21, 1],
-            [31, 1],
-            [36, 1],
-        ],
+        [0, 5, 15, 16, 21, 31, 36],
     ],
     [
         'Юникǒдныé çимвȭлы',
-        [
-            [8,  1],
-            [16, 1],
-        ],
+        [8, 16],
     ],
     [
         pack('UU', 0x415, 0x308) . 'ще Юникод',
-        [
-            [2, 1],
-            [9, 1],
-        ],
+        [2, 9],
     ],
 );
 
@@ -74,8 +40,8 @@ my $tokenizer = Lingua::RU::OpenCorpora::Tokenizer->new;
 
 for my $t (@tests) {
     my $bounds = $tokenizer->tokens_bounds($t->[0]);
-    for(my $i = 0; my $tt = $t->[1][$i]; $i++) {
-        is $bounds->[$i][0], $tt->[0], "boundary: $t->[0]";
-        delta_within $bounds->[$i][1], $tt->[1], 0.15, "probability: $t->[0]";
+    for(my $i = 0; $i <= $#{ $t->[1] }; $i++) {
+        is $bounds->[$i][0], $t->[1][$i], "boundary: $t->[0]";
+        ok $bounds->[$i][1] >= THRESHOLD, "probability: $t->[0]";
     }
 }
