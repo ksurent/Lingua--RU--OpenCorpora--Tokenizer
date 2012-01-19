@@ -4,6 +4,7 @@ use utf8;
 use strict;
 use warnings;
 
+use Unicode::Normalize;
 use Lingua::RU::OpenCorpora::Tokenizer::List;
 use Lingua::RU::OpenCorpora::Tokenizer::Vectors;
 
@@ -47,6 +48,9 @@ sub _do_tokenize {
     # workaround for The Unicode Bug
     # see https://metacpan.org/module/perlunicode#The-Unicode-Bug
     utf8::upgrade($text);
+
+    # normalize Unicode to prevent decomposed characters to be processed separately
+    $text = NFC($text);
 
     my $chars = $self->{chars} = [split //, $text];
     $self->{bounds} = [];
