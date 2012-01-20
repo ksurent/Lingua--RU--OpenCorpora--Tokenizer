@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use parent 'Lingua::RU::OpenCorpora::Tokenizer::List';
 
-our $VERSION = 0.05;
+our $VERSION = 0.06;
 
 use File::ShareDir qw(dist_dir);
 
