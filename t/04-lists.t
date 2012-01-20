@@ -24,8 +24,8 @@ my %tests = (
         )],
         vectors => [qw(
             0
+            8
             16
-            24
         )],
     },
     nok => {
