@@ -13,7 +13,7 @@ use Encode qw(decode);
 use IO::Uncompress::Gunzip;
 use File::ShareDir qw(dist_dir);
 
-sub data_version { 0.04 }
+sub data_version { 0.05 }
 
 sub new {
     my($class, $name, $args) = @_;
