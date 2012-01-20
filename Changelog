@@ -1,3 +1,11 @@
+0.06 - Fri Jan 20 2011
+	- some changes to handle Unicode more or less properly:
+	normalization, unicode classes in regular expressions
+	- speed optimizations
+	- synced algorithm with current PHP version
+	- changed tests to use empirically found threshold
+	- data update
+
 0.05 - Mon Nov 21 2011
 	- data update
 	- added more POD
