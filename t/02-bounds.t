@@ -34,6 +34,14 @@ my @tests = (
         pack('UU', 0x415, 0x308) . 'ще Юникод',
         [2, 9],
     ],
+    [
+        '    один',
+        [7],
+    ],
+    [
+        "\tдва",
+        [3],
+    ],
 );
 
 my $tokenizer = Lingua::RU::OpenCorpora::Tokenizer->new;
@@ -41,7 +49,7 @@ my $tokenizer = Lingua::RU::OpenCorpora::Tokenizer->new;
 for my $t (@tests) {
     my $bounds = $tokenizer->tokens_bounds($t->[0]);
     for(my $i = 0; $i <= $#{ $t->[1] }; $i++) {
-        is $bounds->[$i][0], $t->[1][$i], "boundary: $t->[0]";
-        ok $bounds->[$i][1] >= THRESHOLD, "probability: $t->[0]";
+        is $bounds->[$i][0], $t->[1][$i], "boundary: [$t->[0]]";
+        ok $bounds->[$i][1] >= THRESHOLD, "probability: [$t->[0]]";
     }
 }

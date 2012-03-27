@@ -53,11 +53,11 @@ for my $list (qw(exceptions prefixes hyphens)) {
     ok defined $obj->{version}, "$list: version";
 
     for my $t (@{ $tests{ok}->{$list} }) {
-        ok $obj->in_list($t), "$list: $t";
+        ok $obj->in_list($t), "$list: [$t]";
     }
 
     for my $t (@{ $tests{nok}->{$list} }) {
-        ok !$obj->in_list($t), "$list: $t";
+        ok !$obj->in_list($t), "$list: [$t]";
     }
 }
 
@@ -68,9 +68,9 @@ ok defined $obj, 'vectors: defined';
 ok defined $obj->{version}, 'vectors: version';
 
 for my $t (@{ $tests{ok}->{vectors} }) {
-    ok defined $obj->in_list($t), "vectors: $t";
+    ok defined $obj->in_list($t), "vectors: [$t]";
 }
 
 for my $t (@{ $tests{nok}->{vectors} }) {
-    ok !defined $obj->in_list($t), "vectors: $t";
+    ok !defined $obj->in_list($t), "vectors: [$t]";
 }
