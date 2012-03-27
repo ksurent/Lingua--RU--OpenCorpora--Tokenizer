@@ -15,4 +15,8 @@ test_requires 'Test::Exception';
 install_script 'opencorpora-update-tokenizer';
 install_share  'share';
 
+homepage   'http://opencorpora.org/';
+repository 'https://github.com/ksurent/Lingua--RU--OpenCorpora--Tokenizer';
+bugtracker 'https://github.com/ksurent/Lingua--RU--OpenCorpora--Tokenizer/issues';
+
 WriteAll;
