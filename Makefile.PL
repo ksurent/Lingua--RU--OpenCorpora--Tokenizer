@@ -8,6 +8,7 @@ requires 'LWP::UserAgent';
 requires 'File::ShareDir';
 requires 'List::MoreUtils';
 requires 'IO::Uncompress::Gunzip';
+requires 'Array::Iterator' => 0.08;
 
 test_requires 'Test::Deep';
 test_requires 'Test::Exception';
