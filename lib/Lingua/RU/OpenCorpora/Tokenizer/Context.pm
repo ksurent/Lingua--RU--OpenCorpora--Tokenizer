@@ -26,6 +26,7 @@ sub _get_item {
         nextchar  => defined $chars->[$idx+1] ? $chars->[$idx+1] : '',
         nnextchar => defined $chars->[$idx+2] ? $chars->[$idx+2] : '',
         pos       => $idx,
+        is_space  => _is_space($chars->[$idx]),
     };
     $self->_get_char_sequences($ctx, $chars);
     $self->_vectorize($ctx, $chars);
