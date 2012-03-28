@@ -124,7 +124,9 @@ sub _vectorize {
                          @{$_[1]}{qw(spacer prevchar char nextchar nnextchar seq_left seq seq_right)};
 
     $_[1]->{vector}      = $_vectors_cache->{$ckey} ||= $_[0]->_do_vectorize($_[1]);
-    $_[1]->{probability} = $_[0]->{vectors}->in_list($_[1]->{vector});
+
+    $_[1]->{probability} = $_[0]->{vectors}->in_list($_[1]->{vector})
+        if defined $_[0]->{vectors};
 
     return;
 }
