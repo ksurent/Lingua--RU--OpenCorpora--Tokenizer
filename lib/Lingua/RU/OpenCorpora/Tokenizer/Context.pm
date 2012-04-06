@@ -3,7 +3,7 @@ package Lingua::RU::OpenCorpora::Tokenizer::Context;
 use utf8;
 use strict;
 use warnings;
-use parent 'Array::Iterator::BiDirectional';
+use parent 'Array::Iterator';
 
 sub new {
     my($class, $text, $args) = @_;
