@@ -124,7 +124,8 @@ sub _vectorize {
     my $ckey = join ',', _is_hyphen($_[1]->{spacer}),
                          @{$_[1]}{qw(spacer prevchar char nextchar nnextchar seq_left seq_right)};
 
-    $_[1]->{vector}      = $_vectors_cache->{$ckey} ||= $_[0]->_do_vectorize($_[1]);
+    $_vectors_cache->{$ckey} = $_[0]->_do_vectorize($_[1]) unless exists $_vectors_cache->{$ckey};
+    $_[1]->{vector} = $_vectors_cache->{$ckey};
 
     $_[1]->{probability} = $_[0]->{vectors}->in_list($_[1]->{vector})
         if defined $_[0]->{vectors};
