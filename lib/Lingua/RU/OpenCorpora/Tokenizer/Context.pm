@@ -17,7 +17,7 @@ sub new {
     $self;
 }
 
-sub _get_item {
+sub _getItem {
     my($self, $chars, $idx) = @_;
 
     my $ctx = {
