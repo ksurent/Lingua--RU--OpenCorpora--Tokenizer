@@ -25,19 +25,23 @@ sub _init {
     my $self = shift;
 
     for(qw(exceptions prefixes hyphens)) {
-        my $list = Lingua::RU::OpenCorpora::Tokenizer::List->new(
-            $_,
-            {
-                data_dir => $self->{data_dir},
-            },
-        );
-        $self->{$_} = $list;
-     }
+        unless(defined $self->{$_}) {
+            my $list = Lingua::RU::OpenCorpora::Tokenizer::List->new(
+                $_,
+                {
+                    data_dir => $self->{data_dir},
+                },
+            );
+            $self->{$_} = $list;
+        }
+    }
 
-    my $vectors = Lingua::RU::OpenCorpora::Tokenizer::Vectors->new({
-        data_dir => $self->{data_dir},
-    });
-    $self->{vectors} = $vectors;
+    unless(defined $self->{vectors}) {
+        my $vectors = Lingua::RU::OpenCorpora::Tokenizer::Vectors->new({
+            data_dir => $self->{data_dir},
+        });
+        $self->{vectors} = $vectors;
+    }
 
     return;
 }
@@ -148,7 +152,7 @@ The algorithm is this:
 
 =head2 CONTEXT
 
-In terms of this module context is just a binary vector, currently consisting of 17 elements. It's calculated for every character of the text, then it gets converted to decimal representation and then it's checked against L<VECTORS FILE>. Every element is a result of a simple function like C<_is_latin>, C<_is_digit>, C<_is_bracket> and etc. applied to the input character and few characters around it.
+See L<Lingua::RU::OpenCorpora::Tokenizer::Context>.
 
 =head2 VECTORS FILE
 
@@ -189,6 +193,10 @@ Arguments are:
 =item data_dir
 
 Path to a directory with OpenCorpora data. Optional. Defaults to distribution directory (see L<File::ShareDir>).
+
+=item prefixes, hyphens, exceptions, vectors
+
+Data objects. Optional. You can provide any of those (or none of them). Default is to create an object from the data that comes with the distribution.
 
 =back
 
