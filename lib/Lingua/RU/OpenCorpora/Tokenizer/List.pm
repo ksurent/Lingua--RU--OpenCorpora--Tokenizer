@@ -6,37 +6,30 @@ use warnings;
 
 our $VERSION = 0.06;
 
-use IO::File;
-use File::Spec;
-use Carp qw(croak);
-use Encode qw(decode);
-use IO::Uncompress::Gunzip;
-use File::ShareDir qw(dist_dir);
+use Carp                   ();
+use Encode                 ();
+use File::Spec             ();
+use File::ShareDir         ();
+use IO::Compress::Gzip     ();
+use IO::Uncompress::Gunzip ();
 
 sub data_version { 0.05 }
 
 sub new {
-    my($class, $name, $args) = @_;
+    my($class, $args) = @_;
 
-    croak "List name unspecified" unless defined $name;
-
-    $args             ||= {};
-    $args->{data_dir} ||= dist_dir('Lingua-RU-OpenCorpora-Tokenizer');
+    $args->{data_dir} ||= File::ShareDir::dist_dir('Lingua-RU-OpenCorpora-Tokenizer');
     $args->{root_url} ||= 'http://opencorpora.org/files/export/tokenizer_data';
 
-    my $self = bless {
-        %$args,
-        name => $name,
-    }, $class;
-
-    $self->_load;
+    my $self = bless {%$args}, $class;
+    $self->_load_from_file unless defined $self->{data};
 
     $self;
 }
 
 sub in_list { exists $_[0]->{data}{lc $_[1]} }
 
-sub _load {
+sub _load_from_file {
     my $self = shift;
 
     my $fn = $self->_path;
@@ -44,45 +37,43 @@ sub _load {
 
     chomp($self->{version} = $fh->getline);
 
-    my @data = map decode('utf-8', lc), $fh->getlines;
-
-    # workaround for The Unicode Bug
-    # see https://metacpan.org/module/perlunicode#The-Unicode-Bug
-    utf8::upgrade($_) for @data;
-
-    $self->_parse_list(\@data);
+    my @data      = map lc Encode::decode('utf-8', $_), $fh->getlines;
+    my $parsed    = $self->_parse_list(\@data);
+    $self->{data} = $parsed;
 
     $fh->close;
 
     return;
 }
 
-sub _update {
+sub _write_parsed_data {
+    my($self, $new_data) = @_;
+
+    $self->_write_compressed_data(join "\n", @$new_data);
+}
+
+sub _write_compressed_data {
     my($self, $new_data) = @_;
 
     my $fn = $self->_path;
-    my $fh = IO::File->new($fn, '>') or croak "$fn: $!";
-    $fh->binmode;
+    my $fh = IO::Compress::Gzip->new($fn, '>') or Carp::croak "$fn: $IO::Compress::Gzip::GzipError";
     $fh->print($new_data);
     $fh->close;
-
-    $self->_load;
 }
-
 
 sub _parse_list {
     my($self, $list) = @_;
 
-    chomp @$list;
-    $self->{data} = +{ map {$_,undef} @$list };
+    my $parsed = +{ map {$_,undef} @$list };
+    chomp %$parsed;
 
-    return;
+    $parsed;
 }
 
 sub _path {
     my $self = shift;
 
-    File::Spec->catfile($self->{data_dir}, "$self->{name}.gz");
+    File::Spec->catfile($self->{data_dir}, "$self->{list}.gz");
 }
 
 sub _url {
@@ -90,7 +81,7 @@ sub _url {
 
     $mode ||= 'file';
 
-    my $url = join '/', $self->{root_url}, $self->data_version, $self->{name};
+    my $url = join '/', $self->{root_url}, $self->data_version, $self->{list};
     if($mode eq 'file') {
         $url .= '.gz';
     }
@@ -117,19 +108,27 @@ It's useful to know that this module actually has 2 versions: the code version a
 
 =head1 METHODS
 
-=head2 new($name [, $args])
+=head2 new($args)
 
 Constructor.
 
-Takes one required argument: list name. List name is one of these: exceptions, prefixes and hyphens.
-
-Optionally you can pass a hashref with additional arguments:
+Takes a hashref as an argument:
 
 =over 4
 
+=item list
+
+Required. List name is one of these: exceptions, prefixes and hyphens.
+
 =item data_dir
 
-Path to the directory where vectors file is stored. Defaults to distribution directory (see L<File::ShareDir>).
+Optional. Path to the directory where files are stored. Defaults to distribution directory (see L<File::ShareDir>).
+
+=item data
+
+Optional. An arrayref with list entries to load into the module. Note that if you provide this argument then the module won't read list file.
+
+Use it to override what have in your files. Can be useful when evaluating how the tokenizer perfroms.
 
 =back
 

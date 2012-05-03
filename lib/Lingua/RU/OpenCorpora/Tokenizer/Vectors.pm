@@ -6,28 +6,31 @@ use parent 'Lingua::RU::OpenCorpora::Tokenizer::List';
 
 our $VERSION = 0.06;
 
-use File::ShareDir qw(dist_dir);
-
 sub new {
     my($class, $args) = @_;
 
-    $args             ||= {};
-    $args->{data_dir} ||= dist_dir('Lingua-RU-OpenCorpora-Tokenizer');
-
-    my $self = $class->SUPER::new('vectors', $args);
-
-    $self;
+    $class->SUPER::new({%$args, list => 'vectors'});
 }
 
 sub in_list { $_[0]->{data}{$_[1]} }
 
+sub _write_parsed_data {
+    my($self, $new_data) = @_;
+
+    $self->_write_compressed_data(
+        join "\n",
+        map join(' ', $_, $new_data->{$_}),
+        keys %$new_data
+    );
+}
+
 sub _parse_list {
     my($self, $list) = @_;
 
-    chomp @$list;
-    $self->{data} = +{ map split, @$list };
+    my $parsed = +{ map split, @$list };
+    chomp %$parsed;
 
-    return;
+    $parsed;
 }
 
 1;
@@ -46,13 +49,19 @@ The reason to put this code into a separate class is that vectors file has a sli
 
 =head1 METHODS
 
-=head2 new([$args])
+=head2 new($args)
 
 Constructor.
 
 Takes an optional hashref with arguments:
 
 =over 4
+
+=item data
+
+Optional. A hashref with vectors and probabilities to load into the module. Note that if you provide this argument then the module won't read vectors file.
+
+Use it to override what have in your files. Can be useful when evaluating how the tokenizer perfroms.
 
 =item data_dir
 
@@ -62,9 +71,7 @@ Path to the directory where vectors file is stored. Defaults to distribution dir
 
 =head2 in_list($vector)
 
-Given a vector, checks if there is a probability value defined for it.
-
-Returns probability or undef correspondingly.
+Given a vector, returns its probability or undef if the vector is unknown.
 
 =head1 SEE ALSO
 
