@@ -47,7 +47,7 @@ my %tests = (
 
 for my $list (qw(exceptions prefixes hyphens)) {
     my $obj;
-    lives_ok { $obj = Lingua::RU::OpenCorpora::Tokenizer::List->new($list) } "$list: constructor";
+    lives_ok { $obj = Lingua::RU::OpenCorpora::Tokenizer::List->new({list => $list}) } "$list: constructor";
 
     ok defined $obj, "$list: defined";
     ok defined $obj->{version}, "$list: version";
