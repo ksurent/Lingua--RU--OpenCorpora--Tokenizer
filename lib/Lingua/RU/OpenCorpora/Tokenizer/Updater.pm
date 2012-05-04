@@ -72,7 +72,7 @@ sub _update {
     my $res = $self->{ua}->get($url);
     Carp::croak "$url: " . $res->code unless $res->is_success;
 
-    $self->{$mode}->_update($res->content);
+    $self->{$mode}->_write_raw_data($res->content);
 }
 
 1;
