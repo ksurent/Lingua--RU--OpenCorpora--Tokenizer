@@ -3,8 +3,8 @@ package Lingua::RU::OpenCorpora::Tokenizer::Updater;
 use strict;
 use warnings;
 
+use Carp ();
 use LWP::UserAgent;
-use Carp qw(croak);
 use Lingua::RU::OpenCorpora::Tokenizer::List;
 use Lingua::RU::OpenCorpora::Tokenizer::Vectors;
 
@@ -14,7 +14,6 @@ sub new {
     my $class = shift;
 
     my $self = bless {@_}, $class;
-
     $self->_init;
 
     $self;
@@ -39,6 +38,7 @@ sub _init {
     );
     $self->{ua} = $ua;
 
+    # FIXME respect data_dir
     for(qw(exceptions prefixes hyphens)) {
         $self->{$_} = Lingua::RU::OpenCorpora::Tokenizer::List->new($_);
     }
@@ -52,7 +52,7 @@ sub _update_available {
 
     my $url = $self->{$mode}->_url('version');
     my $res = $self->{ua}->get($url);
-    croak "$url: " . $res->code unless $res->is_success;
+    Carp::croak "$url: " . $res->code unless $res->is_success;
 
     chomp(my $latest = $res->content);
     my $current = $self->{$mode}->{version};
@@ -70,7 +70,7 @@ sub _update {
 
     my $url = $self->{$mode}->_url('file');
     my $res = $self->{ua}->get($url);
-    croak "$url: " . $res->code unless $res->is_success;
+    Carp::croak "$url: " . $res->code unless $res->is_success;
 
     $self->{$mode}->_update($res->content);
 }
