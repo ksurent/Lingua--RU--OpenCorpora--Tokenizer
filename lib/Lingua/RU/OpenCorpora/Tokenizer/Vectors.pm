@@ -39,6 +39,8 @@ sub _parse_list {
 
 __END__
 
+=encoding UTF-8
+
 =head1 NAME
 
 Lingua::RU::OpenCorpora::Tokenizer::Vectors - represents a file with vectors

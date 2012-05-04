@@ -79,6 +79,8 @@ sub _update {
 
 __END__
 
+=encoding UTF-8
+
 =head1 NAME
 
 Lingua::RU::OpenCorpora::Tokenizer::Updater - download newer data for tokenizer
