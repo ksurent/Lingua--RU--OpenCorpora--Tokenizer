@@ -47,9 +47,9 @@ sub _load_from_file {
 }
 
 sub _write_parsed_data {
-    my($self, $new_data) = @_;
+    my $self = shift;
 
-    $self->_write_compressed_data(join "\n", @$new_data);
+    $self->_write_compressed_data(join "\n", @{ $self->{data} });
 }
 
 sub _write_compressed_data {
