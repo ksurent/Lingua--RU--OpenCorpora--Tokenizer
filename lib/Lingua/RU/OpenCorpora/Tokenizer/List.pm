@@ -4,14 +4,14 @@ use utf8;
 use strict;
 use warnings;
 
-our $VERSION = 0.06;
-
 use Carp                   ();
 use Encode                 ();
 use File::Spec             ();
 use File::ShareDir         ();
 use IO::Compress::Gzip     ();
 use IO::Uncompress::Gunzip ();
+
+our $VERSION = 0.06;
 
 sub data_version { 0.05 }
 
