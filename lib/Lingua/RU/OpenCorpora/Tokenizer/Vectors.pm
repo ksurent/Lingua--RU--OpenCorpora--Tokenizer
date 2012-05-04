@@ -9,6 +9,8 @@ our $VERSION = 0.06;
 sub new {
     my($class, $args) = @_;
 
+    $args ||= {};
+
     $class->SUPER::new({%$args, list => 'vectors'});
 }
 
