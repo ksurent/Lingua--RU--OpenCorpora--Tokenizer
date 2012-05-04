@@ -7,6 +7,7 @@ requires 'parent';
 requires 'LWP::UserAgent';
 requires 'File::ShareDir';
 requires 'List::MoreUtils';
+requires 'IO::Compress::Gzip';
 requires 'IO::Uncompress::Gunzip';
 requires 'Array::Iterator' => 0.08;
 
