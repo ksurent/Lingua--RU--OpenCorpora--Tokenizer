@@ -26,12 +26,10 @@ sub _init {
 
     for(qw(exceptions prefixes hyphens)) {
         unless(defined $self->{$_}) {
-            my $list = Lingua::RU::OpenCorpora::Tokenizer::List->new(
-                $_,
-                {
-                    data_dir => $self->{data_dir},
-                },
-            );
+            my $list = Lingua::RU::OpenCorpora::Tokenizer::List->new({
+                list     => $_,
+                data_dir => $self->{data_dir},
+            });
             $self->{$_} = $list;
         }
     }
@@ -79,15 +77,13 @@ sub _do_tokenize {
     $self->{tokens} = [];
     $self->{bounds} = [];
 
-    my $ctx = Lingua::RU::OpenCorpora::Tokenizer::Context->new(
-        $text,
-        {
-            exceptions => $self->{exceptions},
-            prefixes   => $self->{prefixes},
-            hyphens    => $self->{hyphens},
-            vectors    => $self->{vectors},
-        },
-    );
+    my $ctx = Lingua::RU::OpenCorpora::Tokenizer::Context->new({
+        text       => $text,
+        exceptions => $self->{exceptions},
+        prefixes   => $self->{prefixes},
+        hyphens    => $self->{hyphens},
+        vectors    => $self->{vectors},
+    });
     my $last_pos = $ctx->get_length - 1;
     while($ctx->has_next) {
         my $current = $ctx->next;
@@ -108,7 +104,7 @@ sub _do_tokenize {
                 $token = '';
             }
         }
-        elsif($probability) {
+        elsif($probability > 0) {
             push @{ $self->{bounds} }, [$current->{pos}, $probability];
         }
     }
