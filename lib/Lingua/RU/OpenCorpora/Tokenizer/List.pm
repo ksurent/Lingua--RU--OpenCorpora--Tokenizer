@@ -61,6 +61,16 @@ sub _write_compressed_data {
     $fh->close;
 }
 
+sub _write_raw_data {
+    my($self, $new_data) = @_;
+
+    my $fn = $self->_path;
+    my $fh = IO::File->new($fn, '>') or Carp::croak "$fn: $!";
+    $fh->binmode;
+    $fh->print($new_data);
+    $fh->close;
+}
+
 sub _parse_list {
     my($self, $list) = @_;
 
