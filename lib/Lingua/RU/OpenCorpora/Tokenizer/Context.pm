@@ -5,10 +5,12 @@ use strict;
 use warnings;
 use parent 'Array::Iterator';
 
-sub new {
-    my($class, $text, $args) = @_;
+our $VERSION = 0.06;
 
-    my $self = $class->SUPER::new([split //, $text]);
+sub new {
+    my($class, $args) = @_;
+
+    my $self = $class->SUPER::new([split //, delete $args->{text}]);
     $self->{exceptions} = delete $args->{exceptions};
     $self->{prefixes}   = delete $args->{prefixes};
     $self->{hyphens}    = delete $args->{hyphens};
@@ -264,3 +266,108 @@ sub _char_class {
 1;
 
 __END__
+
+=encoding UTF-8
+
+=head1 NAME
+
+Lingua::RU::OpenCorpora::Tokenizer::Context - represents context for text characters
+
+=head1 SYNOPSIS
+
+    my $ctx = Lingua::RU::OpenCorpora::Tokenizer::Context->new({
+        text       => $input_text,
+        hyphens    => $hyphens,
+        prefixes   => $prefixes,
+        exceptions => $exceptions,
+    });
+    while($ctx->has_next) {
+        my $current = $ctx->next; # context for current character
+        ...
+    }
+
+=head1 DESCRIPTION
+
+In terms of this module context is just a binary vector (plus some meta information). It's calculated for every character in the text, then it gets converted to decimal representation and then it's checked against a list of vectors. Every element of the vector is the result of a simple function like C<_is_latin>, C<_is_digit>, C<_is_bracket> and etc. applied to the input character and few characters around it.
+
+=head1 METHODS
+
+This class provides iterable interface by inheriting L<Array::Iterator>.
+
+=head2 new($args)
+
+=head2 has_next
+
+Returns true while there's still a character to process, returns false otherwise.
+
+=head2 next
+
+C<$context> is a hashref with the following keys:
+
+=over 4
+
+=item char
+
+Current character.
+
+=item nextchar
+
+Next character.
+
+=item prevchar
+
+Previous character.
+
+=item nnextchar
+
+Character after next.
+
+=item pos
+
+Zero-based index of the current character.
+
+=item is_space
+
+Flag whether the current character is space.
+
+=item seq_left
+
+Sequence of contextually relevant (probably) characters to left of the current character.
+
+For example: if you are processing an input string like "Город Санкт-Петербург" and your current character is "-", then C<seq_left> would be "Санкт".
+
+=item seq_right
+
+Sequence of contextually relevant (probably) characters to right of the current character.
+
+For example: if you are processing an input string like "Город Санкт-Петербург" and your current character is "-", then C<seq_right> would be "Петербург".
+
+=item seq
+
+Concatenation of C<seq_left>, C<char> and C<seq_right>.
+
+=item vector
+
+Decimal representation of the binary context vector. Uniquely identifies the current character and its context.
+
+=item probability
+
+Probability of the current vector to be a token bound.
+
+Note that this key will be missing if no vectors file was provided in constructor. This is the case when you are training your model.
+
+=back
+
+=head1 SEE ALSO
+
+L<Array::Iterator>
+
+L<Lingua::RU::OpenCorpora::Tokenizer>
+
+=head1 AUTHOR
+
+OpenCorpora team L<http://opencorpora.org>
+
+=head1 LICENSE
+
+This program is free software, you can redistribute it under the same terms as Perl itself.
