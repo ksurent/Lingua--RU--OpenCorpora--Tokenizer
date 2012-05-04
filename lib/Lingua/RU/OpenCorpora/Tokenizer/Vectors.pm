@@ -15,12 +15,12 @@ sub new {
 sub in_list { $_[0]->{data}{$_[1]} }
 
 sub _write_parsed_data {
-    my($self, $new_data) = @_;
+    my $self = shift;
 
     $self->_write_compressed_data(
         join "\n",
-        map join(' ', $_, $new_data->{$_}),
-        keys %$new_data
+        map join(' ', $_, $self->{data}{$_}),
+        keys %{ $self->{data} }
     );
 }
 
