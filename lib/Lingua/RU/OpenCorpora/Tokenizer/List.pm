@@ -64,10 +64,7 @@ sub _write_compressed_data {
 sub _parse_list {
     my($self, $list) = @_;
 
-    my $parsed = +{ map {$_,undef} @$list };
-    chomp %$parsed;
-
-    $parsed;
+    +{ map { chomp; $_,undef } @$list };
 }
 
 sub _path {
