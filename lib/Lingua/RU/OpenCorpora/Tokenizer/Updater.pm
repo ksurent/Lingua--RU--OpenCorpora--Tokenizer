@@ -40,7 +40,7 @@ sub _init {
 
     # FIXME respect data_dir
     for(qw(exceptions prefixes hyphens)) {
-        $self->{$_} = Lingua::RU::OpenCorpora::Tokenizer::List->new($_);
+        $self->{$_} = Lingua::RU::OpenCorpora::Tokenizer::List->new({list => $_});
     }
     $self->{vectors} = Lingua::RU::OpenCorpora::Tokenizer::Vectors->new;
 
