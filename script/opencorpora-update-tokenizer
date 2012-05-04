@@ -16,12 +16,15 @@ GetOptions(
     'force',
     'quiet',
     'all',
+    'data_dir',
     @modes,
 );
 usage(2) if $opts{help};
 usage() if none { $opts{$_} } @modes, 'all';
 
-my $updater = Lingua::RU::OpenCorpora::Tokenizer::Updater->new;
+my $updater = Lingua::RU::OpenCorpora::Tokenizer::Updater->new({
+    data_dir => $opts{data_dir},
+});
 
 for my $mode (@modes) {
     if($opts{$mode} or $opts{all}) {
@@ -86,6 +89,10 @@ Update all files
 =head2 OPTIONS
 
 =over 4
+
+=item --data_dir
+
+Path to a directory where data files are stored
 
 =item --force
 
