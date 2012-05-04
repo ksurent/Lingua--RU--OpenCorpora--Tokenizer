@@ -63,13 +63,13 @@ Takes an optional hashref with arguments:
 
 =item data
 
-Optional. A hashref with vectors and probabilities to load into the module. Note that if you provide this argument then the module won't read vectors file.
+A hashref with vectors and probabilities to load into the module. Note that if you provide this argument then the module won't read vectors file. Optional.
 
 Use it to override what have in your files. Can be useful when evaluating how the tokenizer perfroms.
 
 =item data_dir
 
-Path to the directory where vectors file is stored. Defaults to distribution directory (see L<File::ShareDir>).
+Path to a directory with OpenCorpora data. Optional. Defaults to distribution directory (see L<File::ShareDir>).
 
 =back
 

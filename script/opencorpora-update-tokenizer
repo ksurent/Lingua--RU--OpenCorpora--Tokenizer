@@ -92,7 +92,7 @@ Update all files
 
 =item --data_dir
 
-Path to a directory where data files are stored
+Path to a directory with OpenCorpora data
 
 =item --force
 

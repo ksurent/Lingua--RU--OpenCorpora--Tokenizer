@@ -131,11 +131,11 @@ Required. List name is one of these: exceptions, prefixes and hyphens.
 
 =item data_dir
 
-Optional. Path to the directory where files are stored. Defaults to distribution directory (see L<File::ShareDir>).
+Path to a directory with OpenCorpora data. Optional. Defaults to distribution directory (see L<File::ShareDir>).
 
 =item data
 
-Optional. An arrayref with list entries to load into the module. Note that if you provide this argument then the module won't read list file.
+An arrayref with list entries to load into the module. Note that if you provide this argument then the module won't read list file. Optional.
 
 Use it to override what have in your files. Can be useful when evaluating how the tokenizer perfroms.
 
