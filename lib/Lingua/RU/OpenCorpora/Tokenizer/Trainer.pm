@@ -72,12 +72,12 @@ sub _get_bounds_from_tokens {
     \%bound;
 }
 
-sub save_model {
+sub save_vectors {
     my $self = shift;
 
     my $vectors = Lingua::RU::OpenCorpora::Tokenizer::Vectors->new({
         data_dir => $self->{data_dir},
-        data     => $self->{model},
+        data     => $self->{probability},
     });
     $vectors->_write_parsed_data;
 
@@ -106,7 +106,7 @@ This module enables you to train tokenizer on your own data. Given a corpus it o
         exceptions => $exceptions,
     });
     $trainer->train($corpus);
-    $trainer->save_model;
+    $trainer->save_vectors;
 
 =head1 METHODS
 
@@ -156,7 +156,7 @@ Example:
         ...
     ];
 
-=head2 save_model
+=head2 save_vectors
 
 Dump trained model to disk. Output file can be later picked up by L<Lingua::RU::OpenCorpora::Tokenizer::Vectors>.
 
