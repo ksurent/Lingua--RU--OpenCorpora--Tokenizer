@@ -39,15 +39,9 @@ sub train {
     }
 
     for my $vec (keys %{ $self->{vector} }) {
-        my $freq  = $self->{vector}{$vec};
-
-        my $p = exists $self->{bound}{$vec}
-            ? $self->{bound}{$vec} / $freq
+        $self->{model}{$vec} = exists $self->{bound}{$vec}
+            ? $self->{bound}{$vec} / $self->{vector}{$vec}
             : 0;
-        $self->{probability}{$vec} = $p;
-
-        $self->{total}   += $freq;
-        $self->{precise} += $freq if $p == 0 or $p == 1;
     }
 
     return;
@@ -77,7 +71,7 @@ sub save_vectors {
 
     my $vectors = Lingua::RU::OpenCorpora::Tokenizer::Vectors->new({
         data_dir => $self->{data_dir},
-        data     => $self->{probability},
+        data     => $self->{model},
     });
     $vectors->_write_parsed_data;
 
