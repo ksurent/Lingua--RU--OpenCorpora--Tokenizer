@@ -70,9 +70,6 @@ sub tokens_bounds {
 sub _do_tokenize {
     my($self, $text, $options) = @_;
 
-    # normalize Unicode to prevent decomposed characters to be processed separately
-    $text = Unicode::Normalize::NFC($text);
-
     my $token;
     $self->{tokens} = [];
     $self->{bounds} = [];
@@ -178,11 +175,11 @@ NOTE: all files are stored as GZip archives and are not supposed to be edited ma
 
 =head1 METHODS
 
-=head2 new(%args)
+=head2 new($args)
 
 Constructs and initializes new tokenizer object.
 
-Arguments are:
+Takes a hashref as an argument with the folowwing keys:
 
 =over 4
 

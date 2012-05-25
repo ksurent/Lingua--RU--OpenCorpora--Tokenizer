@@ -5,12 +5,17 @@ use strict;
 use warnings;
 use parent 'Array::Iterator';
 
+use Unicode::Normalize ();
+
 our $VERSION = 0.06;
 
 sub new {
     my($class, $args) = @_;
 
-    my $self = $class->SUPER::new([split //, delete $args->{text}]);
+    # normalize Unicode to prevent decomposed characters to be processed separately
+    my $text = Unicode::Normalize::NFC(delete $args->{text});
+
+    my $self = $class->SUPER::new([split //, $text]);
     $self->{exceptions} = delete $args->{exceptions};
     $self->{prefixes}   = delete $args->{prefixes};
     $self->{hyphens}    = delete $args->{hyphens};
