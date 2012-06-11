@@ -5,6 +5,7 @@ use strict;
 use warnings;
 
 use Carp ();
+use Text::Table;
 use Lingua::RU::OpenCorpora::Tokenizer::Vectors;
 use Lingua::RU::OpenCorpora::Tokenizer::Context;
 
@@ -17,10 +18,14 @@ sub new {
 }
 
 sub train {
-    my($self, $corpus) = @_;
+    my $self = shift;
 
-    for my $item (@$corpus) {
+    my $i = 0;
+    for my $item (@{ $self->{corpus} }) {
         my $bound = $self->_get_bounds_from_tokens($item);
+
+        my $fold_id = $i++ % $self->{nfolds};
+        my $fold    = $self->{cross}[$fold_id] ||= {};
 
         my $ctx = Lingua::RU::OpenCorpora::Tokenizer::Context->new({
             text       => $item->{text},
@@ -28,24 +33,133 @@ sub train {
             exceptions => $self->{exceptions},
             prefixes   => $self->{prefixes},
         });
-
         while($ctx->has_next) {
             my $current = $ctx->next;
             my $vec     = $current->{vector};
 
             $self->{vector}{$vec}++;
-            $self->{bound}{$vec}++ if exists $bound->{$current->{pos}};
+            $fold->{vector}{$vec}++;
+            if(exists $bound->{$current->{pos}}) {
+                $self->{bound}{$vec}++;
+                $fold->{bound}{$vec}++;
+            }
         }
     }
 
     for my $vec (keys %{ $self->{vector} }) {
-        $self->{data}{$vec} = exists $self->{bound}{$vec}
-            ? $self->{bound}{$vec} / $self->{vector}{$vec}
-            : 0;
+        $self->{data}{$vec} = ($self->{bound}{$vec} || 0) / $self->{vector}{$vec};
+
+        for my $fold_id (0 .. $self->{nfolds}-1) {
+            my $fold = $self->{cross}[$fold_id];
+
+            $fold->{data}{$vec} = ($fold->{bound}{$vec} || 0) / $fold->{vector}{$vec}
+                if $fold->{vector}{$vec};
+        }
     }
 
     return;
 }
+
+sub evaluate {
+    my $self = shift;
+
+    my $i = 0;
+    for my $item (@{ $self->{corpus} }) {
+        my $bound = $self->_get_bounds_from_tokens($item);
+
+        my $fold_id = $i++ % $self->{nfolds};
+        my $fold    = $self->{cross}[$fold_id];
+
+        my $vectors = Lingua::RU::OpenCorpora::Tokenizer::Vectors->new({
+            data => $self->{cross}[$fold_id]{data},
+        });
+        my $ctx = Lingua::RU::OpenCorpora::Tokenizer::Context->new({
+            text       => $item->{text},
+            hyphens    => $self->{hyphens},
+            prefixes   => $self->{prefixes},
+            exceptions => $self->{exceptions},
+            vectors    => $vectors,
+        });
+        while($ctx->has_next) {
+            my $current = $ctx->next;
+            next if $current->{is_space};
+
+            $fold->{total}++ if exists $bound->{$current->{pos}};
+
+            for my $threshold (@{ $self->{thresholds} }) {
+                if(exists $bound->{$current->{pos}}) {
+                    $fold->{truepos}{$threshold}++ if $current->{probability} >= $threshold;
+                }
+                elsif($current->{probability} >= $threshold) {
+                    $fold->{falsepos}{$threshold}++;
+                }
+            }
+        }
+    }
+
+    for my $threshold (@{ $self->{thresholds} }) {
+        my $stats = $self->{stats}{$threshold} ||= {};
+
+        for my $fold_id (0 .. $self->{nfolds}-1) {
+            my $fold     = $self->{cross}[$fold_id];
+
+            my $total    = $fold->{total}                || 0;
+            my $truepos  = $fold->{truepos}{$threshold}  || 0;
+            my $falsepos = $fold->{falsepos}{$threshold} || 0;
+
+            $stats->{total}     += $total;
+            $stats->{truepos}   += $truepos;
+            $stats->{falsepos}  += $falsepos;
+
+            $stats->{recall}    += $truepos / $total;
+            $stats->{precision} += $truepos / ($truepos + $falsepos);
+        }
+
+        $stats->{$_} /= $self->{nfolds}
+            for qw(total truepos falsepos precision recall);
+
+        $stats->{F1} = 2 * $stats->{precision} * $stats->{recall} / ($stats->{precision} + $stats->{recall});
+    }
+
+    return;
+}
+
+sub print_stats {
+    my $self = shift;
+
+    my $best;
+
+    my $tt = Text::Table->new(
+        'Threshold',
+        'Precision',
+        'Recall',
+        'F1-score',
+        'Bounds',
+        'True positive',
+        'False positive',
+    );
+    for my $threshold (@{ $self->{thresholds} }) {
+        my $stats = $self->{stats}{$threshold};
+        $tt->load([
+            $threshold,
+            $stats->{precision},
+            $stats->{recall},
+            $stats->{F1},
+            $stats->{total},
+            $stats->{truepos},
+            $stats->{falsepos},
+        ]);
+
+        $best = $threshold if not defined $best or $stats->{F1} > $best;
+    }
+
+    print "$tt\n";
+    print "Total vectors: ", scalar keys %{ $self->{data} }, "\n";
+    print "Best threshold: $best\n";
+
+    return;
+}
+
 
 # TODO i believe there's room for improvment here
 sub _get_bounds_from_tokens {
