@@ -129,7 +129,7 @@ sub _get_char_sequences {
 my $_vectors_cache;
 sub _vectorize {
     my $ckey = join ',', _is_hyphen($_[1]->{spacer}),
-                         @{$_[1]}{qw(spacer prevchar char nextchar nnextchar seq_left seq_right)};
+                         @{$_[1]}{qw(spacer prevchar char nextchar nnextchar seq)};
 
     $_vectors_cache->{$ckey} = $_[0]->_do_vectorize($_[1]) unless exists $_vectors_cache->{$ckey};
     $_[1]->{vector} = $_vectors_cache->{$ckey};
