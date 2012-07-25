@@ -15,6 +15,7 @@ our $VERSION = 0.06;
 sub new {
     my($class, $args) = @_;
 
+    $args ||= {};
     my $self = bless {%$args}, $class;
     $self->_init;
 
