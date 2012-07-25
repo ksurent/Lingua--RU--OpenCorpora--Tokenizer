@@ -4,17 +4,33 @@ use utf8;
 use strict;
 use warnings;
 
-use Carp ();
+use Carp     ();
+use Readonly ();
 use Text::Table;
 use Lingua::RU::OpenCorpora::Tokenizer::Vectors;
 use Lingua::RU::OpenCorpora::Tokenizer::Context;
 
 our $VERSION = 0.06;
 
+Readonly::Array my @thresholds => (
+    0.0,  0.01, 0.05, 0.10,
+    0.15, 0.20, 0.25, 0.30,
+    0.35, 0.40, 0.45, 0.50,
+    0.55, 0.60, 0.65, 0.70,
+    0.75, 0.80, 0.85, 0.90,
+    0.95, 0.99, 1.0,
+);
+
+Readonly::Scalar my $nfolds => 10;
+
 sub new {
     my($class, $args) = @_;
 
-    bless {%$args}, $class;
+    bless {
+        thresholds => \@thresholds,
+        nfolds     => $nfolds,
+        %$args,
+    }, $class;
 }
 
 sub train {
@@ -22,8 +38,10 @@ sub train {
 
     my $i = 0;
     for my $item (@{ $self->{corpus} }) {
+        # ethalon
         my $bound = $self->_get_bounds_from_tokens($item);
 
+        # pre-calculate some data for cross-validation
         my $fold_id = $i++ % $self->{nfolds};
         my $fold    = $self->{cross}[$fold_id] ||= {};
 
@@ -37,18 +55,20 @@ sub train {
             my $current = $ctx->next;
             my $vec     = $current->{vector};
 
-            $self->{vector}{$vec}++;
-            $fold->{vector}{$vec}++;
+            $self->{vector}{$vec}++; # total vector frequency
+            $fold->{vector}{$vec}++; # frequency within cross-validation fold
             if(exists $bound->{$current->{pos}}) {
-                $self->{bound}{$vec}++;
-                $fold->{bound}{$vec}++;
+                $self->{bound}{$vec}++; # total bound frequency
+                $fold->{bound}{$vec}++; # bound frequency within cross-validation fold
             }
         }
     }
 
     for my $vec (keys %{ $self->{vector} }) {
+        # likelihood of given vector to be a token bound
         $self->{data}{$vec} = ($self->{bound}{$vec} || 0) / $self->{vector}{$vec};
 
+        # likelihood of given vector to be a token bound within fold
         for my $fold_id (0 .. $self->{nfolds}-1) {
             my $fold = $self->{cross}[$fold_id];
 
@@ -60,11 +80,14 @@ sub train {
     return;
 }
 
+# evaluate model using K-fold cross-validation technique
+# http://en.wikipedia.org/wiki/Cross-validation_(statistics)
 sub evaluate {
     my $self = shift;
 
     my $i = 0;
     for my $item (@{ $self->{corpus} }) {
+        # ethalon
         my $bound = $self->_get_bounds_from_tokens($item);
 
         my $fold_id = $i++ % $self->{nfolds};
@@ -82,15 +105,18 @@ sub evaluate {
         });
         while($ctx->has_next) {
             my $current = $ctx->next;
+            # space is *always* a bound so it doesn't really make sense to count it
             next if $current->{is_space};
 
             $fold->{total}++ if exists $bound->{$current->{pos}};
 
             for my $threshold (@{ $self->{thresholds} }) {
                 if(exists $bound->{$current->{pos}}) {
-                    $fold->{truepos}{$threshold}++ if $current->{probability} >= $threshold;
+                    # increment true positives as this a correct bound and its likelihood is higher than the threshold
+                    $fold->{truepos}{$threshold}++ if $current->{likelihood} >= $threshold;
                 }
-                elsif($current->{probability} >= $threshold) {
+                elsif($current->{likelihood} >= $threshold) {
+                    # increment false positives as this is not a bound but still has high likelihood
                     $fold->{falsepos}{$threshold}++;
                 }
             }
@@ -111,13 +137,16 @@ sub evaluate {
             $stats->{truepos}   += $truepos;
             $stats->{falsepos}  += $falsepos;
 
+            # http://en.wikipedia.org/wiki/Precision_and_recall
             $stats->{recall}    += $truepos / $total;
             $stats->{precision} += $truepos / ($truepos + $falsepos);
         }
 
+        # macro-average evaluation results
         $stats->{$_} /= $self->{nfolds}
             for qw(total truepos falsepos precision recall);
 
+        # http://en.wikipedia.org/wiki/F1_Score
         $stats->{F1} = 2 * $stats->{precision} * $stats->{recall} / ($stats->{precision} + $stats->{recall});
     }
 
@@ -210,12 +239,13 @@ This module enables you to train tokenizer on your own data. Given a corpus it o
 =head1 SYNOPSIS
 
     my $trainer = Lingua::RU::OpenCorpora::Tokenizer::Model->new({
+        corpus     => $corpus,
         hyphens    => $hyphens,
         prefixes   => $prefixes,
         exceptions => $exceptions,
     });
-    $trainer->train($corpus);
-    $trainer->save_vectors;
+    $trainer->train;
+    $trainer->save;
 
 =head1 METHODS
 
@@ -227,21 +257,9 @@ Takes a hashref as an argument with the following keys:
 
 =over 4
 
-=item hyphens, prefixes, exceptions
+=item corpus
 
-Data objects. All required. See L<Lingua::RU::OpenCorpora::Tokenizer::List>.
-
-=item data_dir
-
-Path to a directory with OpenCorpora data. Optional. Defaults to distribution directory (see L<File::ShareDir>).
-
-=back
-
-=head2 train($corpus)
-
-Computes vectors and probabilities for C<$corpus>.
-
-C<$corpus> is an arrayref of hashrefs with the following keys:
+Input data to train on. Required. An arrayref of hashrefs with the following keys:
 
 =over 4
 
@@ -251,7 +269,7 @@ Raw input text.
 
 =item tokens
 
-Gold standard tokenization. An arrayref of tokens.
+Gold standard tokenization. An arrayref of ordered tokens.
 
 =back
 
@@ -265,11 +283,39 @@ Example:
         ...
     ];
 
-=head2 save_vectors
+=item hyphens, prefixes, exceptions
+
+Data objects. All required. See L<Lingua::RU::OpenCorpora::Tokenizer::List>.
+
+=item thresholds
+
+An arrayref of likelihood thresholds. Optional. Default is:
+
+C<[qw/0.0 0.01 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 0.99 1.0/]>.
+
+=item nfolds
+
+Number of folds to perform in cross-validation. Optional. Default is 10.
+
+=item data_dir
+
+Path to a directory with OpenCorpora data. Optional. Defaults to distribution directory (see L<File::ShareDir>).
+
+=back
+
+=head2 train
+
+Computes vectors and likelihoods.
+
+=head2 save
 
 Dump trained model to disk. Output file can be later picked up by L<Lingua::RU::OpenCorpora::Tokenizer::Vectors>.
 
 Respects C<data_dir> option.
+
+=head1 TODO
+
+Add better, more verbose documentation.
 
 =head1 SEE ALSO
 
