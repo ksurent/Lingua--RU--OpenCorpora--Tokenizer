@@ -134,7 +134,7 @@ sub _vectorize {
     $_vectors_cache->{$ckey} = $_[0]->_do_vectorize($_[1]) unless exists $_vectors_cache->{$ckey};
     $_[1]->{vector} = $_vectors_cache->{$ckey};
 
-    $_[1]->{probability} = $_[0]->{vectors}->in_list($_[1]->{vector})
+    $_[1]->{likelihood} = $_[0]->{vectors}->in_list($_[1]->{vector})
         if defined $_[0]->{vectors};
 
     return;
@@ -355,9 +355,9 @@ Concatenation of C<seq_left>, C<char> and C<seq_right>.
 
 Decimal representation of the binary context vector. Uniquely identifies the current character and its context.
 
-=item probability
+=item likelihood
 
-Probability of the current vector to be a token bound.
+Likelihood of the current vector to be a token bound.
 
 Note that this key will be missing if no vectors file was provided in constructor. This is the case when you are training your model.
 

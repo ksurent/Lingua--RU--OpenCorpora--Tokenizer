@@ -85,14 +85,14 @@ sub _do_tokenize {
     while($ctx->has_next) {
         my $current = $ctx->next;
 
-        my $probability = $current->{probability};
-        $probability    = 0.5 unless defined $probability;
+        my $likelihood = $current->{likelihood};
+        $likelihood    = 0.5 unless defined $likelihood;
 
         if($options->{want_tokens}) {
             $token .= $current->{char};
 
             if(
-                $probability >= $options->{threshold}
+                $likelihood >= $options->{threshold}
                 or $current->{pos} == $last_pos
             )
             {
@@ -101,8 +101,8 @@ sub _do_tokenize {
                 $token = '';
             }
         }
-        elsif($probability > 0) {
-            push @{ $self->{bounds} }, [$current->{pos}, $probability];
+        elsif($likelihood > 0) {
+            push @{ $self->{bounds} }, [$current->{pos}, $likelihood];
         }
     }
 }
@@ -139,7 +139,7 @@ The algorithm is this:
 
 =item 3. For every char get its context (see L<CONTEXT>).
 
-=item 4. Find probability for the context in vectors file (see L<VECTORS FILE>) or use the default value - 0.5.
+=item 4. Find likelihood for the context in vectors file (see L<VECTORS FILE>) or use the default value - 0.5.
 
 =back
 
@@ -149,7 +149,7 @@ See L<Lingua::RU::OpenCorpora::Tokenizer::Context>.
 
 =head2 VECTORS FILE
 
-Contains a list of vectors with probability values showing the chance that given vector is a token boundary.
+Contains a list of vectors with likelihood values showing the chance that given vector is a token boundary.
 
 Built by OpenCorpora project from semi-automatically annotated corpus.
 
@@ -203,7 +203,7 @@ You can also pass a hashref with options as a second argument. Current options:
 
 =item threshold
 
-Minimal probability value for tokens boundary. Boundaries with lower probability are excluded from consideration.
+Minimal likelihood value for tokens boundary. Boundaries with lower likelihood are excluded from consideration.
 
 Default value is 1, which makes tokenizer do splitting only when it's confident.
 
@@ -213,7 +213,7 @@ Default value is 1, which makes tokenizer do splitting only when it's confident.
 
 Takes text as input and finds bounds of tokens in the text. It doesn't split the text into tokens, it just marks where tokens could be.
 
-Returns an arrayref of arrayrefs. Inner arrayref consists of two elements: boundary position in text and probability.
+Returns an arrayref of arrayrefs. Inner arrayref consists of two elements: boundary position in text and likelihood.
 
 =head1 SEE ALSO
 

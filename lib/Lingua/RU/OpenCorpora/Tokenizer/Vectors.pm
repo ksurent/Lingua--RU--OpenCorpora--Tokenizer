@@ -63,7 +63,7 @@ Takes an optional hashref with arguments:
 
 =item data
 
-A hashref with vectors and probabilities to load into the module. Note that if you provide this argument then the module won't read vectors file. Optional.
+A hashref with vectors and likelihoods to load into the module. Note that if you provide this argument then the module won't read vectors file. Optional.
 
 Use it to override what have in your files. Can be useful when evaluating how the tokenizer perfroms.
 
@@ -75,7 +75,7 @@ Path to a directory with OpenCorpora data. Optional. Defaults to distribution di
 
 =head2 in_list($vector)
 
-Given a vector, returns its probability or undef if the vector is unknown.
+Given a vector, returns its likelihood or undef if the vector is unknown.
 
 =head1 SEE ALSO
 
