@@ -67,7 +67,8 @@ sub train {
 
     for my $vec (keys %{ $self->{vector} }) {
         # likelihood of given vector to be a token bound
-        $self->{data}{$vec} = ($self->{bound}{$vec} || 0) / $self->{vector}{$vec};
+        my $likelihood = ($self->{bound}{$vec} || 0) / $self->{vector}{$vec};
+        $self->{data}{$vec} = $likelihood;
 
         # likelihood of given vector to be a token bound within fold
         for my $fold_id (0 .. $self->{nfolds}-1) {
@@ -82,7 +83,6 @@ sub train {
 }
 
 # evaluate model using K-fold cross-validation technique
-# http://en.wikipedia.org/wiki/Cross-validation_(statistics)
 sub evaluate {
     my $self = shift;
 
@@ -183,7 +183,7 @@ sub print_stats {
         $best = $threshold if not defined $best or $stats->{F1} > $best;
     }
 
-    print "$tt\n";
+    print $tt, "\n";
     print "Total vectors: ", scalar keys %{ $self->{data} }, "\n";
     print "Best threshold: $best\n";
 
@@ -314,6 +314,38 @@ Dump trained model to disk. Output file can be later picked up by L<Lingua::RU::
 
 Respects C<data_dir> option.
 
+Must not be called before C<train>.
+
+=head2 evaluate
+
+Computes a bunch of metrics to evaluate current model using cross-validation technique (see L<http://en.wikipedia.org/wiki/Cross-validation_(statistics)>).
+
+These metrics include:
+
+=over 4
+
+=item precision
+
+=item recall
+
+See L<http://en.wikipedia.org/wiki/Precision_and_recall>.
+
+=item F1-score
+
+See L<en.wikipedia.org/wiki/F1_score>.
+
+=back
+
+Above metrics will be calculated for every threshold that was specified via C<threshold> argument in constructor.
+
+Must not be called before C<train>.
+
+=head2 print_stats
+
+Prints a table with results from C<evaluate> call.
+
+Must not be called before C<evaluate>.
+
 =head1 TODO
 
 Add better, more verbose documentation.
@@ -321,8 +353,6 @@ Add better, more verbose documentation.
 =head1 SEE ALSO
 
 L<Lingua::RU::OpenCorpora::Tokenizer::Vectors>
-
-L<Lingua::RU::OpenCorpora::Tokenizer::Evaluate>
 
 L<Lingua::RU::OpenCorpora::Tokenizer>
 
