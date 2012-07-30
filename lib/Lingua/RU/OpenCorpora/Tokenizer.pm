@@ -68,6 +68,8 @@ sub tokens_bounds {
     $self->{bounds};
 }
 
+*bounds = \&tokens_bounds;
+
 sub _do_tokenize {
     my($self, $text, $options) = @_;
 
@@ -120,7 +122,7 @@ Lingua::RU::OpenCorpora::Tokenizer - tokenizer for OpenCorpora project
 
     my $tokens = $tokenizer->tokens($text);
 
-    my $bounds = $tokenizer->tokens_bounds($text);
+    my $bounds = $tokenizer->bounds($text);
 
 =head1 DESCRIPTION
 
@@ -215,6 +217,10 @@ Default value is 1, which makes tokenizer do splitting only when it's confident.
 Takes text as input and finds bounds of tokens in the text. It doesn't split the text into tokens, it just marks where tokens could be.
 
 Returns an arrayref of arrayrefs. Inner arrayref consists of two elements: boundary position in text and likelihood.
+
+=head2 bounds($text)
+
+Convenience alias for C<tokens_bounds()>.
 
 =head1 SEE ALSO
 
