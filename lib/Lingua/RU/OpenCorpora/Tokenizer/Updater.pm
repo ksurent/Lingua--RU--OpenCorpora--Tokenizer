@@ -11,9 +11,9 @@ use Lingua::RU::OpenCorpora::Tokenizer::Vectors;
 our $VERSION = 0.06;
 
 sub new {
-    my $class = shift;
+    my($class, $args) = @_;
 
-    my $self = bless {@_}, $class;
+    my $self = bless {%$args}, $class;
     $self->_init;
 
     $self;
