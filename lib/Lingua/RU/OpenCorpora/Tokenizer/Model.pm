@@ -86,6 +86,9 @@ sub train {
 sub evaluate {
     my $self = shift;
 
+    my @vectors = map Lingua::RU::OpenCorpora::Tokenizer::Vectors->new({data => $self->{cross}[$_]{data}}),
+                  0 .. $self->{nfolds} - 1;
+
     my $i = 0;
     for my $item (@{ $self->{corpus} }) {
         # ethalon
@@ -94,15 +97,12 @@ sub evaluate {
         my $fold_id = $i++ % $self->{nfolds};
         my $fold    = $self->{cross}[$fold_id];
 
-        my $vectors = Lingua::RU::OpenCorpora::Tokenizer::Vectors->new({
-            data => $self->{cross}[$fold_id]{data},
-        });
         my $ctx = Lingua::RU::OpenCorpora::Tokenizer::Context->new({
             text       => $item->{text},
             hyphens    => $self->{hyphens},
             prefixes   => $self->{prefixes},
             exceptions => $self->{exceptions},
-            vectors    => $vectors,
+            vectors    => $vectors[$fold_id],
         });
         while($ctx->has_next) {
             my $current = $ctx->next;
