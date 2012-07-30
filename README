@@ -21,14 +21,14 @@ DESCRIPTION
     1. Split text into chars.
     2. Iterate over the chars from left to right.
     3. For every char get its context (see CONTEXT).
-    4. Find probability for the context in vectors file (see "VECTORS FILE")
+    4. Find likelihood for the context in vectors file (see "VECTORS FILE")
     or use the default value - 0.5.
 
   CONTEXT
     See Lingua::RU::OpenCorpora::Tokenizer::Context.
 
   VECTORS FILE
-    Contains a list of vectors with probability values showing the chance
+    Contains a list of vectors with likelihood values showing the chance
     that given vector is a token boundary.
 
     Built by OpenCorpora project from semi-automatically annotated corpus.
@@ -75,8 +75,8 @@ METHODS
     options:
 
     threshold
-        Minimal probability value for tokens boundary. Boundaries with lower
-        probability are excluded from consideration.
+        Minimal likelihood value for tokens boundary. Boundaries with lower
+        likelihood are excluded from consideration.
 
         Default value is 1, which makes tokenizer do splitting only when
         it's confident.
@@ -86,7 +86,7 @@ METHODS
     split the text into tokens, it just marks where tokens could be.
 
     Returns an arrayref of arrayrefs. Inner arrayref consists of two
-    elements: boundary position in text and probability.
+    elements: boundary position in text and likelihood.
 
 SEE ALSO
     Lingua::RU::OpenCorpora::Tokenizer::Updater
