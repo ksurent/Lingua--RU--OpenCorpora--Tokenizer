@@ -4,31 +4,32 @@ use utf8;
 use strict;
 use warnings;
 
-use Carp     ();
-use Readonly ();
+use Carp ();
 use Text::Table;
 use Lingua::RU::OpenCorpora::Tokenizer::Vectors;
 use Lingua::RU::OpenCorpora::Tokenizer::Context;
 
 our $VERSION = 0.06;
 
-Readonly::Array my @thresholds => (
-    0.0,  0.01, 0.05, 0.10,
-    0.15, 0.20, 0.25, 0.30,
-    0.35, 0.40, 0.45, 0.50,
-    0.55, 0.60, 0.65, 0.70,
-    0.75, 0.80, 0.85, 0.90,
-    0.95, 0.99, 1.0,
+# default likelihood thresholds for model training
+my @THRESHOLDS = (
+    .00, .01, .05, .10,
+    .15, .20, .25, .30,
+    .35, .40, .45, .50,
+    .55, .60, .65, .70,
+    .75, .80, .85, .90,
+    .95, .99, 1.0,
 );
 
-Readonly::Scalar my $nfolds => 10;
+# default number of folds in cross-validation
+my $NFOLDS = 10;
 
 sub new {
     my($class, $args) = @_;
 
     bless {
-        thresholds => \@thresholds,
-        nfolds     => $nfolds,
+        thresholds => \@THRESHOLDS,
+        nfolds     => $NFOLDS,
         %$args,
     }, $class;
 }
