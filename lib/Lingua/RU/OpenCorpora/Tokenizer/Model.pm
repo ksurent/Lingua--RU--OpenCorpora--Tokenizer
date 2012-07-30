@@ -69,6 +69,7 @@ sub train {
         # likelihood of given vector to be a token bound
         my $likelihood = ($self->{bound}{$vec} || 0) / $self->{vector}{$vec};
         $self->{data}{$vec} = $likelihood;
+        $self->{confident}++ if $likelihood == 0 or $likelihood == 1;
 
         # likelihood of given vector to be a token bound within fold
         for my $fold_id (0 .. $self->{nfolds}-1) {
@@ -185,6 +186,7 @@ sub print_stats {
 
     print $tt, "\n";
     print "Total vectors: ", scalar keys %{ $self->{data} }, "\n";
+    print "Model confidence: ", $self->{confident} / keys(%{ $self->{data} }) * 100, "%\n";
     print "Best threshold: $best\n";
 
     return;
@@ -333,6 +335,12 @@ See L<http://en.wikipedia.org/wiki/Precision_and_recall>.
 =item F1-score
 
 See L<en.wikipedia.org/wiki/F1_score>.
+
+=item confidence
+
+Percentage of vectors the model is sure about. Basically, it's the number of vector likelihoods that are equal exactly to 0 or 1, divided by the total number of vectors.
+
+The higher the confidence is, the better the model is.
 
 =back
 
