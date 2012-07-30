@@ -171,7 +171,7 @@ sub print_stats {
     );
     for my $threshold (@{ $self->{thresholds} }) {
         my $stats = $self->{stats}{$threshold};
-        $tt->load([
+        $tt->add(
             $threshold,
             $stats->{precision},
             $stats->{recall},
@@ -179,7 +179,7 @@ sub print_stats {
             $stats->{total},
             $stats->{truepos},
             $stats->{falsepos},
-        ]);
+        );
 
         $best = $threshold if not defined $best or $stats->{F1} > $best;
     }
