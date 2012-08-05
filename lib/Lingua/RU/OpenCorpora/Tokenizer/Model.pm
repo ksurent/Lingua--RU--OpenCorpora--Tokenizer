@@ -11,7 +11,7 @@ use Lingua::RU::OpenCorpora::Tokenizer::Context;
 
 our $VERSION = 0.06;
 
-# default likelihood thresholds for model training
+# default likelihood thresholds for model evaluation
 my @THRESHOLDS = (
     .00, .01, .05, .10,
     .15, .20, .25, .30,
