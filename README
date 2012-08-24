@@ -4,7 +4,7 @@ NAME
 SYNOPSIS
         my $tokens = $tokenizer->tokens($text);
 
-        my $bounds = $tokenizer->tokens_bounds($text);
+        my $bounds = $tokenizer->bounds($text);
 
 DESCRIPTION
     This module tokenizes input texts in Russian language.
@@ -87,6 +87,9 @@ METHODS
 
     Returns an arrayref of arrayrefs. Inner arrayref consists of two
     elements: boundary position in text and likelihood.
+
+  bounds($text)
+    Convenience alias for "tokens_bounds()".
 
 SEE ALSO
     Lingua::RU::OpenCorpora::Tokenizer::Updater
