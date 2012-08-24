@@ -40,7 +40,7 @@ sub train {
     my $i = 0;
     for my $item (@{ $self->{corpus} }) {
         # ethalon
-        my $bound = $self->_get_bounds_from_tokens($item);
+        my $bound = {map +($_,undef), $self->_get_bounds_from_tokens($item)};
 
         # pre-calculate some data for cross-validation
         my $fold_id = $i++ % $self->{nfolds};
@@ -93,7 +93,7 @@ sub evaluate {
     my $i = 0;
     for my $item (@{ $self->{corpus} }) {
         # ethalon
-        my $bound = $self->_get_bounds_from_tokens($item);
+        my $bound = {map +($_,undef), $self->_get_bounds_from_tokens($item)};
 
         my $fold_id = $i++ % $self->{nfolds};
         my $fold    = $self->{cross}[$fold_id];
@@ -197,20 +197,21 @@ sub print_stats {
 sub _get_bounds_from_tokens {
     my($self, $item) = @_;
 
-    my %bound;
-    my $pos = 0;
+    my @bounds;
+    my $offset = 0;
     for my $token (@{ $item->{tokens} }) {
-        while(substr($item->{text}, $pos, length $token) ne $token) {
-            $pos++;
+        my $bound_pos = index $item->{text}, $token, $offset;
 
-            # shouldn't happen...
-            Carp::croak "Strange token: [$token] in sentence [$item->{text}]" if $pos > length $item->{text};
-        }
-        $bound{$pos + length($token) - 1} = undef;
-        $pos += length $token;
+        # shouldn't happen...
+        Carp::croak "Strange token: [$token] in sentence [$item->{text}]"
+            if $bound_pos < 0;
+
+        my $len  = length $token;
+        $offset += $len;
+        push @bounds, $bound_pos + $len - 1;
     }
 
-    \%bound;
+    @bounds;
 }
 
 sub save {
