@@ -1,9 +1,7 @@
 use utf8;
-no warnings qw(qw);
 use open qw(:std :utf8);
 
 use Test::More qw(no_plan);
-use Test::Deep;
 
 use Lingua::RU::OpenCorpora::Tokenizer;
 
