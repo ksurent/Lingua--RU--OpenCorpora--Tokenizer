@@ -1,4 +1,5 @@
 use utf8;
+no warnings qw(qw);
 use open qw(:std :utf8);
 
 use Test::More;
