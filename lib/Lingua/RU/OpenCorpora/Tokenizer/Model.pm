@@ -186,6 +186,7 @@ sub print_stats {
 
     print $tt, "\n";
     print "Total vectors: ", scalar keys %{ $self->{data} }, "\n";
+    # 'confidence' here is the percentage of vectors that have likelihood of strictly 0 or 1
     print "Model confidence: ", $self->{confident} / keys(%{ $self->{data} }) * 100, "%\n";
     print "Best threshold: $best\n";
 
