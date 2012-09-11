@@ -4,6 +4,7 @@ all_from 'lib/Lingua/RU/OpenCorpora/Tokenizer.pm';
 readme_from 'lib/Lingua/RU/OpenCorpora/Tokenizer.pm';
 
 requires 'parent';
+requires 'Text::Table';
 requires 'LWP::UserAgent';
 requires 'File::ShareDir';
 requires 'IO::Compress::Gzip';
