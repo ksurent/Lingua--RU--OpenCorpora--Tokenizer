@@ -39,7 +39,6 @@ my @tests = (
             text   => 'Здравствуйте, я ваша тётя!',
             tokens => [qw(Здравствуйте , я ваша тётя !)],
         },
-        #{11,undef, 12,undef, 14,undef, 19,undef, 24,undef, 25,undef},
         [11, 12, 14, 19, 24, 25],
     ],
     [
@@ -47,7 +46,6 @@ my @tests = (
             text   => 'Просто набор слов без пунктуации',
             tokens => [qw(Просто набор слов без пунктуации)],
         },
-        #{5,undef, 11,undef, 16,undef, 20,undef, 31,undef},
         [5, 11, 16, 20, 31],
     ],
     [
@@ -55,18 +53,26 @@ my @tests = (
             text   => 'Хо-хо-хо',
             tokens => [qw(Хо-хо-хо)],
         },
-        #{7,undef},
         [7],
     ],
     [
         {
-            text   => 'Хо-хо-хо',
-            tokens => [qw(Хо-хо-хо хо)],
+            text   => 'Ко-ко-ко',
+            tokens => [qw(Ко-ко-ко ко)],
             dies   => 1,
         },
-        #{},
         [],
     ],
+    # this test currently fails
+    # not sure if this is a bug or a feature
+#    [
+#        {
+#            text   => 'Ке-ке-ке',
+#            tokens => [qw(Ке-ке-к)],
+#            dies   => 1,
+#        },
+#        [],
+#    ],
 );
 
 plan tests => scalar @tests;
