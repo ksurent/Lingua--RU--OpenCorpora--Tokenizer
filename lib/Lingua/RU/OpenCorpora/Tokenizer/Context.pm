@@ -301,13 +301,33 @@ This class provides iterable interface by inheriting L<Array::Iterator>.
 
 =head2 new($args)
 
+Constructor.
+
+Takes a hashref as an argument with the following keys:
+
+=over 4
+
+=item text
+
+Input text to tokenize. Required.
+
+=item hyphens, prefixes, exceptions
+
+Data objects. All required. See L<Lingua::RU::OpenCorpora::Tokenizer::List>.
+
+=item vectors
+
+Data object. Not needed in training mode, must be specified otherwise. See L<Lingua::RU::OpenCorpora::Tokenizer::Vectors>.
+
+=back
+
 =head2 has_next
 
 Returns true while there's still a character to process, returns false otherwise.
 
 =head2 next
 
-C<$context> is a hashref with the following keys:
+Returns current character's context. Context is a hashref with the following keys:
 
 =over 4
 
