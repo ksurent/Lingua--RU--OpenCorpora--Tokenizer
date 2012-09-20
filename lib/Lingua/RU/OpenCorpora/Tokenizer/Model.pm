@@ -243,14 +243,14 @@ This module enables you to train tokenizer on your own data. Given a corpus it o
 
 =head1 SYNOPSIS
 
-    my $trainer = Lingua::RU::OpenCorpora::Tokenizer::Model->new({
+    my $model = Lingua::RU::OpenCorpora::Tokenizer::Model->new({
         corpus     => $corpus,
         hyphens    => $hyphens,
         prefixes   => $prefixes,
         exceptions => $exceptions,
     });
-    $trainer->train;
-    $trainer->save;
+    $model->train;
+    $model->save;
 
 =head1 METHODS
 
@@ -294,7 +294,7 @@ Data objects. All required. See L<Lingua::RU::OpenCorpora::Tokenizer::List>.
 
 =item thresholds
 
-An arrayref of likelihood thresholds. Optional. Default is:
+An arrayref of likelihood thresholds. Needed for model evaluation. Optional. Default is:
 
 C<[qw/0.0 0.01 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 0.99 1.0/]>.
 
@@ -324,6 +324,8 @@ Must not be called before C<train>.
 
 Computes a bunch of metrics to evaluate current model using cross-validation technique (see L<http://en.wikipedia.org/wiki/Cross-validation_(statistics)>).
 
+Respects C<thresholds> attribute.
+
 These metrics include:
 
 =over 4
@@ -338,11 +340,15 @@ See L<http://en.wikipedia.org/wiki/Precision_and_recall>.
 
 See L<en.wikipedia.org/wiki/F1_score>.
 
-=item confidence
+=item true positives
 
-Percentage of vectors the model is sure about. Basically, it's the number of vector likelihoods that are equal exactly to 0 or 1, divided by the total number of vectors.
+=item false positives
 
-The higher the confidence is, the better the model is.
+See L<http://en.wikipedia.org/wiki/Type_I_and_type_II_errors>.
+
+=item bounds
+
+Number of token bounds found.
 
 =back
 
