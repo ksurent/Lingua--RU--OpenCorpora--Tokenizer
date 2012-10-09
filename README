@@ -91,6 +91,13 @@ METHODS
   bounds($text)
     Convenience alias for "tokens_bounds()".
 
+TO DO
+    get rid of gzipped files
+
+KNOWN BUGS
+    version 0.07 introduced a small regression in F1 score (using
+    OpenCorpora data)
+
 SEE ALSO
     Lingua::RU::OpenCorpora::Tokenizer::Updater
 

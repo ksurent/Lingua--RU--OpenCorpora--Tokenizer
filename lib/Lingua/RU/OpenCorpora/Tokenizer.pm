@@ -10,7 +10,7 @@ use Lingua::RU::OpenCorpora::Tokenizer::List;
 use Lingua::RU::OpenCorpora::Tokenizer::Vectors;
 use Lingua::RU::OpenCorpora::Tokenizer::Context;
 
-our $VERSION = 0.06;
+our $VERSION = 0.07;
 
 sub new {
     my($class, $args) = @_;
@@ -219,6 +219,22 @@ Returns an arrayref of arrayrefs. Inner arrayref consists of two elements: bound
 =head2 bounds($text)
 
 Convenience alias for C<tokens_bounds()>.
+
+=head1 TO DO
+
+=over 4
+
+=item get rid of gzipped files
+
+=back
+
+=head1 KNOWN BUGS
+
+=over 4
+
+=item version 0.07 introduced a small regression in F1 score (using OpenCorpora data)
+
+=back
 
 =head1 SEE ALSO
 

@@ -11,7 +11,7 @@ use File::ShareDir         ();
 use IO::Compress::Gzip     ();
 use IO::Uncompress::Gunzip ();
 
-our $VERSION = 0.06;
+our $VERSION = 0.07;
 
 sub data_version { 0.05 }
 

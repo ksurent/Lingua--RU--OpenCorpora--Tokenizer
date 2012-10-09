@@ -9,7 +9,7 @@ use Text::Table;
 use Lingua::RU::OpenCorpora::Tokenizer::Vectors;
 use Lingua::RU::OpenCorpora::Tokenizer::Context;
 
-our $VERSION = 0.06;
+our $VERSION = 0.07;
 
 # default likelihood thresholds for model evaluation
 my @THRESHOLDS = (
