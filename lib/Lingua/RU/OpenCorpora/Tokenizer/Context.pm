@@ -3,7 +3,6 @@ package Lingua::RU::OpenCorpora::Tokenizer::Context;
 use utf8;
 use strict;
 use warnings;
-use parent 'Array::Iterator';
 
 use Unicode::Normalize ();
 
@@ -15,17 +14,22 @@ sub new {
     # normalize Unicode to prevent decomposed characters to be processed separately
     my $text = Unicode::Normalize::NFC(delete $args->{text});
 
-    my $self = $class->SUPER::new([split //, $text]);
-    $self->{exceptions} = delete $args->{exceptions};
-    $self->{prefixes}   = delete $args->{prefixes};
-    $self->{hyphens}    = delete $args->{hyphens};
-    $self->{vectors}    = delete $args->{vectors};
-
-    $self;
+    bless {
+        chars      => [split //, $text],
+        exceptions => delete $args->{exceptions},
+        prefixes   => delete $args->{prefixes},
+        hyphens    => delete $args->{hyphens},
+        vectors    => delete $args->{vectors},
+        idx        => 0, # iterator index
+    }, $class;
 }
 
-sub _getItem {
-    my($self, $chars, $idx) = @_;
+sub next {
+    my $self = shift;
+
+    my $idx   = $self->{idx};
+    my $chars = $self->{chars};
+    return undef if $idx > $#$chars;
 
     my $ctx = {
         char      => $chars->[$idx],
@@ -37,6 +41,8 @@ sub _getItem {
     };
     $self->_get_char_sequences($ctx, $chars);
     $self->_vectorize($ctx, $chars);
+
+    $self->{idx}++;
 
     $ctx;
 }
@@ -85,7 +91,7 @@ sub _get_char_sequences {
         }
 
         # go right
-        my $last_pos = $self->get_length - 1;
+        my $last_pos = $#{ $self->{chars} };
         for(my $i = $ctx->{pos} + 1; $i <= $last_pos; $i++) {
             my $ch = $chars->[$i];
 
@@ -286,8 +292,8 @@ Lingua::RU::OpenCorpora::Tokenizer::Context - represents context for text charac
         prefixes   => $prefixes,
         exceptions => $exceptions,
     });
-    while($ctx->has_next) {
-        my $current = $ctx->next; # context for current character
+    while(my $current = $ctx->next) {
+        # context for current character
         ...
     }
 
@@ -321,13 +327,9 @@ Data object. Not needed in training mode, must be specified otherwise. See L<Lin
 
 =back
 
-=head2 has_next
-
-Returns true while there's still a character to process, returns false otherwise.
-
 =head2 next
 
-Returns current character's context. Context is a hashref with the following keys:
+Returns next character's context or undef when there are no characters left. Context is a hashref with the following keys:
 
 =over 4
 

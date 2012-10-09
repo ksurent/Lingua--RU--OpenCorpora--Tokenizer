@@ -52,9 +52,8 @@ sub train {
             exceptions => $self->{exceptions},
             prefixes   => $self->{prefixes},
         });
-        while($ctx->has_next) {
-            my $current = $ctx->next;
-            my $vec     = $current->{vector};
+        while(my $current = $ctx->next) {
+            my $vec = $current->{vector};
 
             $self->{vector}{$vec}++; # total vector frequency
             $fold->{vector}{$vec}++; # frequency within cross-validation fold
@@ -105,8 +104,7 @@ sub evaluate {
             exceptions => $self->{exceptions},
             vectors    => $vectors[$fold_id],
         });
-        while($ctx->has_next) {
-            my $current = $ctx->next;
+        while(my $current = $ctx->next) {
             # space is *always* a bound so it doesn't really make sense to count it
             next if $current->{is_space};
 

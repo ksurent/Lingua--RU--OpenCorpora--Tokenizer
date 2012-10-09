@@ -84,10 +84,8 @@ sub _do_tokenize {
         hyphens    => $self->{hyphens},
         vectors    => $self->{vectors},
     });
-    my $last_pos = $ctx->get_length - 1;
-    while($ctx->has_next) {
-        my $current = $ctx->next;
-
+    my $last_pos = $#{ $ctx->{chars} };
+    while(my $current = $ctx->next) {
         my $likelihood = $current->{likelihood};
         $likelihood    = 0.5 unless defined $likelihood;
 
