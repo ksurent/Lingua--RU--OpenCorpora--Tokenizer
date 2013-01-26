@@ -55,6 +55,15 @@ my @tests = (
         '    Пробелы    ',
         [qw(Пробелы)],
     ],
+    # issue #1 reported by kmike
+    [
+        'от 0 до 2',
+        [qw(от 0 до 2)],
+    ],
+    [
+        '0.Привет',
+        [qw(0 . Привет)],
+    ],
 );
 
 plan tests => scalar @tests;

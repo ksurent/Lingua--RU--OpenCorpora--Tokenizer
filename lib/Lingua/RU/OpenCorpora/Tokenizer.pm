@@ -98,7 +98,7 @@ sub _do_tokenize {
             )
             {
                 $token =~ s{^\s+|\s+$}{}g;
-                push @{ $self->{tokens} }, $token if $token;
+                push @{ $self->{tokens} }, $token if length $token;
                 $token = '';
             }
         }
