@@ -239,6 +239,26 @@ Lingua::RU::OpenCorpora::Tokenizer::Model - create vectors from corpus
 
 This module enables you to train tokenizer on your own data. Given a corpus it outputs a file with vectors and probabilities.
 
+=head2 HOW IT WORKS
+
+Training algorithm is the following:
+
+=over 8
+
+=item 1. compute L<context|Lingua::RU::OpenCorpora::Tokenizer::Context> for each character of each sentence in the training set
+
+=item 2. count how many times each context occurs in the training set
+
+=item 3. count how many times each context was marked as a token bound in the training set
+
+=item 4. for each context compute likelihood of it being a token bound
+
+=back
+
+Basically, what you get after training is a model that is able to tell you in what circumstances given character should be considered a token bound. For instance, it answers questions like "What's the likelihood of a colon character surrounded by two digits and spaces being a token bound?". Or "What's the likelihood of a cyrillic letter preceded by a bunch of other cyrillic letters and a space, followed by dot, being a token bound?".
+
+For a more formal explanation see L<this paper|http://opencorpora.org/doc/articles/2012_MIEM.pdf> (unfortunately, in Russian only).
+
 =head1 SYNOPSIS
 
     my $model = Lingua::RU::OpenCorpora::Tokenizer::Model->new({
