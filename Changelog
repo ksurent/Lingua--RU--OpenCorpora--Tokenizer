@@ -6,6 +6,8 @@
 	- code cleanup & optimizations
 	- INCOMPATIBLE CHANGE: changed the way arguments to methods passed around
 	- fixed a bug where '0' token would get lost (issue reported by kmike)
+	- fixed a bug where '. <digit>' pair wouldn't get split by space (issue
+	reported by kmike)
 
 0.06 - Fri Jan 20 2011
 	- some changes to handle Unicode more or less properly:
