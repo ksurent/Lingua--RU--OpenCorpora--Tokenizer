@@ -303,8 +303,6 @@ In terms of this module context is just a binary vector (plus some meta informat
 
 =head1 METHODS
 
-This class provides iterable interface by inheriting L<Array::Iterator>.
-
 =head2 new($args)
 
 Constructor.
